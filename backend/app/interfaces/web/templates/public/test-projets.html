@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Projets</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background: #0A0A0A; color: #FFF; font-family: sans-serif; padding: 2rem; }
+        .card { background: #111; border: 1px solid #333; border-radius: 12px; padding: 1rem; margin: 1rem 0; }
+        .card h3 { color: #E65100; }
+    </style>
+</head>
+<body>
+    <h1>TEST PROJETS</h1>
+    <div x-data="testData()" x-init="load()">
+        <p x-text="'Total: ' + projets.length"></p>
+        <template x-for="p in projets" :key="p.id">
+            <div class="card">
+                <h3 x-text="p.titre"></h3>
+                <p x-text="p.description_courte"></p>
+            </div>
+        </template>
+    </div>
+    
+    <script>
+    function testData() {
+        return {
+            projets: [],
+            async load() {
+                try {
+                    var res = await fetch('/api/v1/projets?statut=publié&limit=10');
+                    var data = await res.json();
+                    this.projets = data.items || [];
+                    console.log('Projets chargés:', this.projets.length);
+                } catch(e) {
+                    console.error('Erreur:', e);
+                }
+            }
+        };
+    }
+    </script>
+</body>
+</html>

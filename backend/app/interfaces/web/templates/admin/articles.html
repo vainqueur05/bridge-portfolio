@@ -1,0 +1,127 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'articles' %}
+
+{% block title %}Articles | Admin{% endblock %}
+{% block page_title %}Articles{% endblock %}
+{% block page_subtitle %}Gérez votre blog{% endblock %}
+
+{% block content %}
+<div x-data="articlesManager()" x-init="loadArticles()">
+    
+    <div class="flex justify-end mb-6">
+        <a href="/admin/articles/new" class="btn-primary flex items-center gap-2">
+            <i class="bi bi-plus-lg"></i> Nouvel article
+        </a>
+    </div>
+    
+    <div class="stat-card overflow-hidden">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Article</th>
+                    <th>Catégorie</th>
+                    <th>Statut</th>
+                    <th>Lecture</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-for="article in articles" :key="article.id">
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded bg-gray-700 overflow-hidden flex-shrink-0">
+                                    <img :src="article.image_couverture || '/static/placeholder-project.svg'" 
+                                         class="w-full h-full object-cover"
+                                         @error="$el.src='/static/placeholder-project.svg'">
+                                </div>
+                                <div>
+                                    <p class="font-medium" x-text="article.titre"></p>
+                                    <p class="text-xs text-gray-500 truncate max-w-xs" x-text="article.extrait"></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-info" x-text="article.categorie || 'Général'"></span></td>
+                        <td>
+                            <span :class="getStatusBadge(article.statut)" x-text="article.statut"></span>
+                        </td>
+                        <td class="text-sm text-gray-400" x-text="(article.temps_lecture || 5) + ' min'"></td>
+                        <td class="text-sm text-gray-400" x-text="formatDate(article.date_publication || article.created_at)"></td>
+                        <td>
+                            <div class="flex gap-1">
+                                <a :href="'/admin/articles/' + article.id + '/edit'" 
+                                   class="p-2 hover:bg-gray-700 rounded-lg" title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button @click="deleteArticle(article)" class="p-2 hover:bg-red-900/30 rounded-lg text-red-400" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+                <tr x-show="articles.length === 0">
+                    <td colspan="6" class="text-center py-12 text-gray-500">
+                        <i class="bi bi-journal-text text-3xl"></i>
+                        <p class="mt-2">Aucun article</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function articlesManager() {
+    return {
+        articles: [],
+        
+        async loadArticles() {
+            try {
+                const res = await fetch('/api/v1/articles?limit=50');
+                if (res.ok) {
+                    const data = await res.json();
+                    this.articles = data.items || [];
+                }
+            } catch(e) {
+                console.warn('Erreur chargement articles');
+            }
+        },
+        
+        getStatusBadge(statut) {
+            const badges = {
+                'publié': 'badge-success',
+                'brouillon': 'badge-warning',
+                'archivé': 'badge-danger'
+            };
+            return badges[statut] || 'badge-info';
+        },
+        
+        formatDate(date) {
+            if (!date) return '';
+            return new Date(date).toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        },
+        
+        async deleteArticle(article) {
+            if (!confirm(`Supprimer définitivement "${article.titre}" ?`)) return;
+            try {
+                const res = await fetch(`/api/v1/admin/articles/${article.id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('Article supprimé', 'error');
+                    this.loadArticles();
+                }
+            } catch(e) {
+                showToast('Erreur lors de la suppression', 'error');
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,347 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'parametres' %}
+
+{% block title %}Paramètres | Admin{% endblock %}
+{% block page_title %}Paramètres{% endblock %}
+{% block page_subtitle %}Configuration complète du site{% endblock %}
+
+{% block content %}
+<div x-data="parametresManager()" x-init="loadConfig()">
+    
+    <form @submit.prevent="saveConfig">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            
+            <!-- IDENTITÉ -->
+            <div class="stat-card">
+                <h3 class="font-bold mb-4 flex items-center gap-2">
+                    <i class="bi bi-person-badge"></i> Identité
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Nom complet</label>
+                        <input x-model="config.identite_nom" class="form-input" placeholder="Vainqueur Kalema">
+                    </div>
+                    <div>
+                        <label class="form-label">Titre professionnel</label>
+                        <input x-model="config.identite_titre" class="form-input" placeholder="Développeur Full Stack">
+                    </div>
+                    <div>
+                        <label class="form-label">Bio courte</label>
+                        <textarea x-model="config.identite_bio" rows="3" class="form-input" placeholder="Je construis des solutions digitales..."></textarea>
+                    </div>
+                    
+                    <!-- Photo de profil -->
+                    <div>
+                        <label class="form-label">Photo de profil</label>
+                        <div class="flex items-start gap-4">
+                            <div class="w-24 h-24 rounded-xl overflow-hidden border-2 border-gray-700 flex-shrink-0 bg-gray-800">
+                                <img :src="photoPreview || config.identite_photo || '/static/placeholder-project.svg'" 
+                                     class="w-full h-full object-cover"
+                                     @error="$el.src='/static/placeholder-project.svg'">
+                            </div>
+                            <div class="flex-1">
+                                <label class="btn-outline cursor-pointer text-sm py-2 px-4 inline-flex items-center gap-2">
+                                    <i class="bi bi-upload"></i> Choisir une photo
+                                    <input type="file" @change="uploadPhoto" accept="image/*" class="hidden">
+                                </label>
+                                <div x-show="uploadingPhoto" class="text-sm text-green-400 mt-2">
+                                    <i class="bi bi-arrow-repeat animate-spin"></i> Upload en cours...
+                                </div>
+                                <div x-show="config.identite_photo" class="mt-2 text-xs text-gray-500 truncate max-w-[200px]" x-text="config.identite_photo.split('/').pop()"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- CV -->
+                    <div>
+                        <label class="form-label">CV (PDF)</label>
+                        <div class="flex items-center gap-3">
+                            <label class="btn-outline cursor-pointer text-sm py-2 px-4 inline-flex items-center gap-2">
+                                <i class="bi bi-file-pdf"></i> Uploader CV
+                                <input type="file" @change="uploadCV" accept=".pdf" class="hidden">
+                            </label>
+                            <span x-show="config.identite_cv" class="text-xs text-green-400">
+                                <i class="bi bi-check-circle"></i> CV uploadé
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- APPARENCE -->
+            <div class="stat-card">
+                <h3 class="font-bold mb-4 flex items-center gap-2">
+                    <i class="bi bi-palette"></i> Apparence
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Thème du site</label>
+                        <select x-model="config.apparence_theme" class="form-input" @change="previewTheme">
+                            <option value="after-midnight">After Midnight</option>
+                            <option value="synthwave-city">Synthwave City</option>
+                            <option value="golden-hour">Golden Hour</option>
+                            <option value="velvet-room">Velvet Room</option>
+                            <option value="deep-flow">Deep Flow</option>
+                            <option value="ivory-ghost">Ivory Ghost</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Le thème s'applique instantanément</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label">Couleur primaire</label>
+                            <input x-model="config.apparence_primaire" type="color" class="w-full h-10 rounded cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="form-label">Couleur secondaire</label>
+                            <input x-model="config.apparence_secondaire" type="color" class="w-full h-10 rounded cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CONTACT -->
+            <div class="stat-card">
+                <h3 class="font-bold mb-4 flex items-center gap-2">
+                    <i class="bi bi-telephone"></i> Contact
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Email</label>
+                        <input x-model="config.contact_email" type="email" class="form-input">
+                    </div>
+                    <div>
+                        <label class="form-label">Téléphone</label>
+                        <input x-model="config.contact_telephone" class="form-input" placeholder="+243...">
+                    </div>
+                    <div>
+                        <label class="form-label">WhatsApp</label>
+                        <input x-model="config.contact_whatsapp" class="form-input" placeholder="+243...">
+                    </div>
+                    <div>
+                        <label class="form-label">Adresse</label>
+                        <input x-model="config.contact_adresse" class="form-input" placeholder="Kinshasa, RDC">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SEO -->
+            <div class="stat-card">
+                <h3 class="font-bold mb-4 flex items-center gap-2">
+                    <i class="bi bi-search"></i> SEO
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Titre du site</label>
+                        <input x-model="config.seo_titre" class="form-input">
+                    </div>
+                    <div>
+                        <label class="form-label">Description</label>
+                        <textarea x-model="config.seo_description" rows="2" class="form-input"></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label">Image Open Graph (URL)</label>
+                        <input x-model="config.seo_og_image" class="form-input">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MODULES -->
+            <div class="stat-card">
+                <h3 class="font-bold mb-4 flex items-center gap-2">
+                    <i class="bi bi-toggle-on"></i> Modules
+                </h3>
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" x-model="config.modules_blog" true-value="true" false-value="false" class="w-4 h-4">
+                        <span>Blog</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" x-model="config.modules_temoignages" true-value="true" false-value="false" class="w-4 h-4">
+                        <span>Témoignages</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" x-model="config.modules_bridgescan" true-value="true" false-value="false" class="w-4 h-4">
+                        <span>BridgeScan</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" x-model="config.modules_agent_ia" true-value="true" false-value="false" class="w-4 h-4">
+                        <span>Agent IA</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- MAINTENANCE -->
+            <div class="stat-card">
+                <h3 class="font-bold mb-4 flex items-center gap-2">
+                    <i class="bi bi-cone-striped"></i> Maintenance
+                </h3>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" x-model="config.maintenance_mode" true-value="true" false-value="false" class="w-4 h-4">
+                    <span>Mode maintenance</span>
+                </label>
+                <p class="text-xs text-gray-500 mt-2">En mode maintenance, le site affiche une page "En construction"</p>
+            </div>
+        </div>
+        
+        <!-- Sauvegarde -->
+        <div class="flex justify-end gap-3">
+            <button type="submit" :disabled="saving" class="btn-primary">
+                <i class="bi bi-check-lg"></i> <span x-text="saving ? 'Enregistrement...' : 'Enregistrer tous les paramètres'"></span>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function parametresManager() {
+    return {
+        config: {
+            identite_nom: '', identite_titre: '', identite_bio: '', identite_photo: '', identite_cv: '',
+            apparence_theme: 'after-midnight', apparence_primaire: '#E65100', apparence_secondaire: '#D4AF37',
+            apparence_logo: '', apparence_favicon: '',
+            contact_email: '', contact_telephone: '', contact_whatsapp: '', contact_adresse: '',
+            seo_titre: '', seo_description: '', seo_mots_cles: '', seo_og_image: '',
+            modules_blog: 'true', modules_temoignages: 'true', modules_simulateur: 'true',
+            modules_bridgescan: 'true', modules_agent_ia: 'false',
+            maintenance_mode: 'false'
+        },
+        saving: false,
+        uploadingPhoto: false,
+        photoPreview: null,
+        
+        async loadConfig() {
+            try {
+                const res = await fetch('/api/v1/site-config');
+                const data = await res.json();
+                
+                this.config.identite_nom = data.identite?.nom || '';
+                this.config.identite_titre = data.identite?.titre || '';
+                this.config.identite_bio = data.identite?.bio || '';
+                this.config.identite_photo = data.identite?.photo || '';
+                this.config.identite_cv = data.identite?.cv || '';
+                this.config.apparence_theme = data.apparence?.theme || 'after-midnight';
+                this.config.apparence_primaire = data.apparence?.primaire || '#E65100';
+                this.config.apparence_secondaire = data.apparence?.secondaire || '#D4AF37';
+                this.config.contact_email = data.contact?.email || '';
+                this.config.contact_telephone = data.contact?.telephone || '';
+                this.config.contact_whatsapp = data.contact?.whatsapp || '';
+                this.config.contact_adresse = data.contact?.adresse || '';
+                this.config.seo_titre = data.seo?.titre || '';
+                this.config.seo_description = data.seo?.description || '';
+                this.config.seo_og_image = data.seo?.og_image || '';
+                this.config.modules_blog = data.modules?.blog ? 'true' : 'false';
+                this.config.modules_temoignages = data.modules?.temoignages ? 'true' : 'false';
+                this.config.modules_simulateur = data.modules?.simulateur ? 'true' : 'false';
+                this.config.modules_bridgescan = data.modules?.bridgescan ? 'true' : 'false';
+                this.config.modules_agent_ia = data.modules?.agent_ia ? 'true' : 'false';
+            } catch(e) {}
+        },
+        
+        previewTheme() {
+            document.documentElement.setAttribute('data-theme', this.config.apparence_theme);
+            localStorage.setItem('bridge-theme', this.config.apparence_theme);
+        },
+        
+        async uploadPhoto(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Prévisualisation immédiate
+            const reader = new FileReader();
+            reader.onload = (ev) => { this.photoPreview = ev.target.result; };
+            reader.readAsDataURL(file);
+            
+            this.uploadingPhoto = true;
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('dossier', 'profil');
+            
+            try {
+                const res = await fetch('/api/v1/admin/upload', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    this.config.identite_photo = data.url;
+                    this.photoPreview = data.url;
+                } else {
+                    showToast('Erreur lors de l\'upload', 'error');
+                }
+            } catch(e) { 
+                showToast('Erreur réseau', 'error'); 
+            } finally { 
+                this.uploadingPhoto = false; 
+            }
+        },
+        
+        async uploadCV(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('dossier', 'documents');
+            
+            try {
+                const res = await fetch('/api/v1/admin/upload', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    this.config.identite_cv = data.url;
+                    showToast('CV uploadé !');
+                } else {
+                    showToast('Erreur lors de l\'upload', 'error');
+                }
+            } catch(e) { 
+                showToast('Erreur réseau', 'error'); 
+            }
+        },
+        
+        async saveConfig() {
+            this.saving = true;
+            try {
+                const configs = [
+                    {cle: 'identite_nom', valeur: this.config.identite_nom},
+                    {cle: 'identite_titre', valeur: this.config.identite_titre},
+                    {cle: 'identite_bio', valeur: this.config.identite_bio},
+                    {cle: 'identite_photo', valeur: this.config.identite_photo},
+                    {cle: 'identite_cv', valeur: this.config.identite_cv},
+                    {cle: 'apparence_theme', valeur: this.config.apparence_theme},
+                    {cle: 'apparence_primaire', valeur: this.config.apparence_primaire},
+                    {cle: 'apparence_secondaire', valeur: this.config.apparence_secondaire},
+                    {cle: 'contact_email', valeur: this.config.contact_email},
+                    {cle: 'contact_telephone', valeur: this.config.contact_telephone},
+                    {cle: 'contact_whatsapp', valeur: this.config.contact_whatsapp},
+                    {cle: 'contact_adresse', valeur: this.config.contact_adresse},
+                    {cle: 'seo_titre', valeur: this.config.seo_titre},
+                    {cle: 'seo_description', valeur: this.config.seo_description},
+                    {cle: 'seo_og_image', valeur: this.config.seo_og_image},
+                    {cle: 'modules_blog', valeur: this.config.modules_blog},
+                    {cle: 'modules_temoignages', valeur: this.config.modules_temoignages},
+                    {cle: 'modules_bridgescan', valeur: this.config.modules_bridgescan},
+                    {cle: 'modules_agent_ia', valeur: this.config.modules_agent_ia},
+                    {cle: 'maintenance_mode', valeur: this.config.maintenance_mode},
+                ];
+                
+                const res = await fetch('/api/v1/admin/config/batch', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({configs})
+                });
+                
+                if (res.ok) {
+                    showToast('Paramètres enregistrés !');
+                    this.previewTheme();
+                } else {
+                    showToast('Erreur lors de la sauvegarde', 'error');
+                }
+            } catch(e) {
+                showToast('Erreur réseau', 'error');
+            } finally {
+                this.saving = false;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'services' %}
+
+{% block title %}Services | Admin{% endblock %}
+{% block page_title %}Services{% endblock %}
+{% block page_subtitle %}Gérez vos offres de services{% endblock %}
+
+{% block content %}
+<div x-data="servicesManager()" x-init="loadServices()">
+    
+    <div class="flex justify-end mb-6">
+        <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <i class="bi bi-plus-lg"></i> Nouveau service
+        </button>
+    </div>
+    
+    <!-- Grille des services -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <template x-for="service in services" :key="service.id">
+            <div class="stat-card">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-admin-accent/20 flex items-center justify-center">
+                            <i :class="service.icone || 'bi-gear'" class="text-2xl text-admin-accent"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold" x-text="service.titre"></h3>
+                            <span x-show="service.badge" 
+                                  :class="service.badge === 'Populaire' ? 'badge badge-warning' : service.badge === 'Nouveau' ? 'badge badge-info' : 'badge badge-success'"
+                                  class="badge text-xs" x-text="service.badge"></span>
+                        </div>
+                    </div>
+                    <span :class="service.actif ? 'badge badge-success' : 'badge'" x-text="service.actif ? 'Actif' : 'Inactif'"></span>
+                </div>
+                
+                <p class="text-sm text-gray-400 mb-4 truncate" x-text="service.description"></p>
+                
+                <div class="flex gap-2 text-sm text-gray-500 mb-4">
+                    <span x-show="service.tarif_indicatif">
+                        <i class="bi bi-cash"></i> <span x-text="service.tarif_indicatif"></span>
+                    </span>
+                    <span x-show="service.duree_estimee">
+                        <i class="bi bi-clock"></i> <span x-text="service.duree_estimee"></span>
+                    </span>
+                </div>
+                
+                <div class="flex justify-end gap-2 pt-3 border-t border-admin-border">
+                    <button @click="openModal(service)" class="p-2 hover:bg-gray-700 rounded-lg" title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button @click="toggleActif(service)" class="p-2 hover:bg-gray-700 rounded-lg" title="Activer/Désactiver">
+                        <i :class="service.actif ? 'bi-eye-slash text-yellow-400' : 'bi-eye text-green-400'"></i>
+                    </button>
+                    <button @click="deleteService(service)" class="p-2 hover:bg-red-900/30 rounded-lg text-red-400" title="Supprimer">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </template>
+    </div>
+    
+    <!-- Modal -->
+    <div x-show="showModal" class="modal-overlay" @click.self="showModal = false">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold mb-4" x-text="editingService ? 'Modifier le service' : 'Nouveau service'"></h3>
+            
+            <form @submit.prevent="saveService">
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Titre</label>
+                        <input x-model="form.titre" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Description</label>
+                        <textarea x-model="form.description" rows="3" class="form-input"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label">Icône (Bootstrap Icons)</label>
+                            <input x-model="form.icone" class="form-input" placeholder="bi-gear">
+                        </div>
+                        <div>
+                            <label class="form-label">Badge</label>
+                            <select x-model="form.badge" class="form-input">
+                                <option value="">Aucun</option>
+                                <option value="Populaire">Populaire</option>
+                                <option value="Nouveau">Nouveau</option>
+                                <option value="Best-seller">Best-seller</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label">Tarif indicatif</label>
+                            <input x-model="form.tarif_indicatif" class="form-input" placeholder="À partir de 1500€">
+                        </div>
+                        <div>
+                            <label class="form-label">Durée estimée</label>
+                            <input x-model="form.duree_estimee" class="form-input" placeholder="4-6 semaines">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Ordre d'affichage</label>
+                        <input x-model="form.ordre" type="number" class="form-input">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" @click="showModal = false" class="btn-outline">Annuler</button>
+                    <button type="submit" class="btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function servicesManager() {
+    return {
+        services: [],
+        showModal: false,
+        editingService: null,
+        form: {titre:'', description:'', icone:'', badge:'', tarif_indicatif:'', duree_estimee:'', ordre:0},
+        
+        async loadServices() {
+            const res = await fetch('/api/v1/services?actif_only=false');
+            this.services = await res.json();
+        },
+        
+        openModal(service = null) {
+            this.editingService = service;
+            if (service) {
+                this.form = {...service};
+            } else {
+                this.form = {titre:'', description:'', icone:'', badge:'', tarif_indicatif:'', duree_estimee:'', ordre:0};
+            }
+            this.showModal = true;
+        },
+        
+        async saveService() {
+            const url = this.editingService 
+                ? `/api/v1/admin/services/${this.editingService.id}`
+                : '/api/v1/admin/services';
+            const method = this.editingService ? 'PUT' : 'POST';
+            
+            const res = await fetch(url, {
+                method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(this.form)
+            });
+            
+            if (res.ok) {
+                showToast(this.editingService ? 'Service modifié' : 'Service créé');
+                this.showModal = false;
+                this.loadServices();
+            }
+        },
+        
+        async toggleActif(service) {
+            await fetch(`/api/v1/admin/services/${service.id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({actif: !service.actif})
+            });
+            service.actif = !service.actif;
+        },
+        
+        async deleteService(service) {
+            if (!confirm(`Supprimer "${service.titre}" ?`)) return;
+            await fetch(`/api/v1/admin/services/${service.id}`, {method: 'DELETE'});
+            showToast('Service supprimé', 'error');
+            this.loadServices();
+        }
+    }
+}
+</script>
+{% endblock %}

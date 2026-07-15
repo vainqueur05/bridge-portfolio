@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projets | Bridge Afrika</title>
+    <meta name="description" content="Découvrez tous les projets de Vainqueur Kalema : SaaS, APIs, automatisation WhatsApp. Des solutions qui transforment des vies.">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#0A0A0A">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    
+    <style>
+        :root {
+            --accent: #E65100;
+            --accent-glow: rgba(230,81,0,0.4);
+            --gold: #D4AF37;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0A0A0A;
+            color: #E0E0E0;
+            min-height: 100vh;
+        }
+        
+        .nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            background: rgba(10,10,10,0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 0 1.5rem;
+        }
+        .nav-inner {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+        .nav-logo {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #FFF;
+            text-decoration: none;
+            font-family: 'Playfair Display', serif;
+        }
+        .nav-logo span { color: var(--accent); }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-links a {
+            color: #999;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #FFF; }
+        .nav-cta {
+            background: var(--accent);
+            color: #FFF !important;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 6rem 1.5rem 1rem;
+            background: radial-gradient(ellipse at center, rgba(230,81,0,0.06) 0%, transparent 70%);
+        }
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #FFF;
+            font-family: 'Playfair Display', serif;
+        }
+        .hero h1 span { color: var(--accent); }
+        .hero p {
+            color: #888;
+            max-width: 500px;
+            margin: 0.8rem auto 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .hero-stats {
+            display: flex;
+            gap: 2.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .hero-stat {
+            text-align: center;
+        }
+        .hero-stat-num {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--accent);
+        }
+        .hero-stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 1.5rem;
+        }
+        .filters button {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #999;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filters button.active, .filters button:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #FFF;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 1.5rem 1.5rem 3rem;
+        }
+        
+        .card {
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+            box-shadow: 0 25px 50px rgba(230,81,0,0.18);
+        }
+        .card-img {
+            height: 220px;
+            overflow: hidden;
+            position: relative;
+        }
+        .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+        .card:hover .card-img img { transform: scale(1.08); }
+        .card-img-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            padding: 1.5rem;
+        }
+        .card:hover .card-img-overlay { opacity: 1; }
+        .card-img-overlay span {
+            color: #FFF;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent);
+            color: #FFF;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 2;
+        }
+        .card-featured {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            color: var(--gold);
+            font-size: 1.3rem;
+            z-index: 2;
+            filter: drop-shadow(0 0 8px rgba(212,175,55,0.6));
+        }
+        .card-body { padding: 1.5rem; }
+        .card-body h3 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #FFF;
+            margin-bottom: 0.6rem;
+            transition: color 0.3s;
+        }
+        .card:hover .card-body h3 { color: var(--accent); }
+        .card-body p {
+            font-size: 0.9rem;
+            color: #888;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        .card-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .card-tech span {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: #AAA;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1.5rem;
+            color: #555;
+            grid-column: 1 / -1;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 1rem;
+            opacity: 0.2;
+        }
+        
+        .cta {
+            text-align: center;
+            padding: 3rem 1.5rem 5rem;
+        }
+        .cta-inner {
+            background: linear-gradient(135deg, rgba(230,81,0,0.05) 0%, transparent 50%);
+            border: 1px solid rgba(230,81,0,0.1);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .cta-inner h2 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #FFF;
+            margin-bottom: 0.5rem;
+            font-family: 'Playfair Display', serif;
+        }
+        .cta-inner h2 span { color: var(--accent); }
+        .cta-inner p { color: #888; margin-bottom: 1.5rem; }
+        .cta-inner a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: #FFF;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .cta-inner a:hover {
+            box-shadow: 0 10px 30px var(--accent-glow);
+            transform: translateY(-3px);
+        }
+        
+        .footer {
+            background: #0D0D0D;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .footer a { color: #888; text-decoration: none; margin: 0 0.8rem; transition: color 0.2s; }
+        .footer a:hover { color: var(--accent); }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">Bridge<span>Afrika</span></a>
+        <div class="nav-links">
+            <a href="/">Accueil</a>
+            <a href="/projets" style="color:#FFF;">Projets</a>
+            <a href="/#services">Services</a>
+            <a href="/blog">Blog</a>
+            <a href="/contact" class="nav-cta">Me contacter</a>
+        </div>
+    </div>
+</nav>
+
+<div x-data="projetsData()" x-init="loadProjets()" style="padding-top: 64px;">
+    
+    <!-- Hero -->
+    <div class="hero">
+        <h1>Tous mes <span>Projets</span></h1>
+        <p>Des solutions conçues pour répondre à des problèmes réels.</p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-num" x-text="totalProjets">0</div>
+                <div class="hero-stat-label">Projets</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num" x-text="categoriesCount">0</div>
+                <div class="hero-stat-label">Catégories</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">100%</div>
+                <div class="hero-stat-label">Sur mesure</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="filters" x-show="categories.length > 0">
+        <button :class="{ active: filtre === '' }" @click="filtre = ''">
+            <i class="bi bi-grid-fill"></i> Tous
+        </button>
+        <template x-for="cat in categories" :key="cat">
+            <button :class="{ active: filtre === cat }" @click="filtre = cat" x-text="cat"></button>
+        </template>
+    </div>
+    
+    <!-- Grille -->
+    <div class="grid">
+        <template x-for="projet in filteredProjets" :key="projet.id">
+            <a :href="'/projet/' + projet.slug" class="card">
+                <div class="card-img">
+                    <img :src="projet.image_principale || '/static/placeholder-project.svg'" 
+                         :alt="projet.titre" 
+                         @error="$el.src='/static/placeholder-project.svg'">
+                    <div class="card-img-overlay">
+                        <span>Découvrir le projet <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                    <span class="card-badge" x-text="projet.categorie || 'Projet'"></span>
+                    <span x-show="projet.featured" class="card-featured"><i class="bi bi-star-fill"></i></span>
+                </div>
+                <div class="card-body">
+                    <h3 x-text="projet.titre"></h3>
+                    <p x-text="projet.description_courte || 'Un projet sur mesure conçu pour répondre à un besoin réel.'"></p>
+                    <div class="card-tech">
+                        <template x-for="tech in (projet.technologies || []).slice(0, 4)" :key="tech">
+                            <span x-text="tech"></span>
+                        </template>
+                        <span x-show="(projet.technologies || []).length > 4" style="color:#888;font-size:0.7rem;">+</span>
+                    </div>
+                </div>
+            </a>
+        </template>
+        
+        <!-- État vide -->
+        <div x-show="filteredProjets.length === 0 && !loading" class="empty-state">
+            <i class="bi bi-folder2-open"></i>
+            <p>Aucun projet trouvé dans cette catégorie.</p>
+            <button @click="filtre = ''" style="color:var(--accent);text-decoration:underline;margin-top:0.5rem;background:none;border:none;cursor:pointer;">
+                Voir tous les projets
+            </button>
+        </div>
+    </div>
+    
+    <!-- CTA -->
+    <div class="cta">
+        <div class="cta-inner">
+            <h2>Un <span>projet</span> en tête ?</h2>
+            <p>Vous avez une idée qui pourrait changer les choses ? Je suis là pour la concrétiser.</p>
+            <a href="/contact"><i class="bi bi-chat-dots"></i> Me contacter</a>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>
+        &copy; 2026 Bridge Afrika. 
+        <a href="/">Accueil</a> · 
+        <a href="/projets">Projets</a> · 
+        <a href="/blog">Blog</a> · 
+        <a href="/contact">Contact</a>
+    </p>
+</footer>
+
+<script>
+function projetsData() {
+    return {
+        projets: [],
+        loading: true,
+        filtre: '',
+        
+        get filteredProjets() {
+            if (!this.filtre) return this.projets;
+            return this.projets.filter(p => p.categorie === this.filtre);
+        },
+        
+        get categories() {
+            const cats = this.projets.map(p => p.categorie).filter(Boolean);
+            return [...new Set(cats)];
+        },
+        
+        get totalProjets() {
+            return this.projets.length;
+        },
+        
+        get categoriesCount() {
+            return this.categories.length;
+        },
+        
+        async loadProjets() {
+            try {
+                const res = await fetch('/api/v1/projets?statut=publié&limit=50');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.items) {
+                        this.projets = data.items;
+                    } else if (Array.isArray(data)) {
+                        this.projets = data;
+                    }
+                } else {
+                    this.loadFallback();
+                }
+            } catch (e) {
+                console.warn('API indisponible, fallback utilisé');
+                this.loadFallback();
+            }
+            this.loading = false;
+        },
+        
+        loadFallback() {
+            this.projets = [
+                {
+                    id: 1,
+                    titre: "ViaRDC",
+                    slug: "viardc",
+                    description_courte: "Plateforme de réservation de bus avec QR code, paiement mobile et gestion de flotte.",
+                    image_principale: "/static/placeholder-project.svg",
+                    categorie: "Transport",
+                    technologies: ["FastAPI", "PostgreSQL", "Tailwind", "Africa's Talking"],
+                    featured: true
+                },
+                {
+                    id: 2,
+                    titre: "Kelya",
+                    slug: "kelya",
+                    description_courte: "Assistant WhatsApp pour salons de coiffure. Gestion invisible des prestations et du chiffre d'affaires.",
+                    image_principale: "/static/placeholder-project.svg",
+                    categorie: "WhatsApp",
+                    technologies: ["FastAPI", "Twilio", "WhatsApp API", "Alpine.js"],
+                    featured: true
+                },
+                {
+                    id: 3,
+                    titre: "Hôtel Direct",
+                    slug: "hotel-direct",
+                    description_courte: "PMS africain avec check-in autonome, QR code, et personnalisation visuelle complète.",
+                    image_principale: "/static/placeholder-project.svg",
+                    categorie: "Réservation",
+                    technologies: ["FastAPI", "PostgreSQL", "QR Code", "JWT"],
+                    featured: true
+                },
+                {
+                    id: 4,
+                    titre: "École Facile",
+                    slug: "ecole-facile",
+                    description_courte: "Gestion scolaire par WhatsApp. Bulletins, paiements, absences. Zéro application.",
+                    image_principale: "/static/placeholder-project.svg",
+                    categorie: "Éducation",
+                    technologies: ["FastAPI", "SQLite", "WhatsApp API", "Africa's Talking"],
+                    featured: false
+                },
+                {
+                    id: 5,
+                    titre: "Yebela + RIPOSTE",
+                    slug: "yebela-riposte",
+                    description_courte: "Système d'alerte citoyenne par SMS et appels vocaux pour la sécurité des quartiers.",
+                    image_principale: "/static/placeholder-project.svg",
+                    categorie: "Sécurité",
+                    technologies: ["FastAPI", "Redis", "Africa's Talking", "Twilio"],
+                    featured: false
+                },
+                {
+                    id: 6,
+                    titre: "ALTER EGO",
+                    slug: "alter-ego",
+                    description_courte: "Assistant commercial IA qui négocie et répond aux clients par WhatsApp et email.",
+                    image_principale: "/static/placeholder-project.svg",
+                    categorie: "IA",
+                    technologies: ["FastAPI", "GPT-4", "WhatsApp API", "Redis"],
+                    featured: false
+                }
+            ];
+        }
+    };
+}
+</script>
+</body>
+</html>

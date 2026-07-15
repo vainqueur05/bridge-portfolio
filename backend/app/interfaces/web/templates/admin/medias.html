@@ -1,0 +1,70 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'medias' %}
+
+{% block title %}Médias | Admin{% endblock %}
+{% block page_title %}Médiathèque{% endblock %}
+{% block page_subtitle %}Gérez vos images et fichiers{% endblock %}
+
+{% block content %}
+<div x-data="mediasManager()" x-init="loadMedias()">
+    
+    <!-- Upload -->
+    <div class="stat-card mb-6">
+        <h3 class="font-bold mb-4">Uploader un fichier</h3>
+        <form @submit.prevent="uploadFile" class="flex gap-4">
+            <input type="file" x-ref="fileInput" @change="fileSelected = $refs.fileInput.files[0]" class="form-input flex-1">
+            <button type="submit" class="btn-primary" :disabled="!fileSelected || uploading">
+                <i class="bi bi-upload"></i> Uploader
+            </button>
+        </form>
+    </div>
+    
+    <!-- Grille -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <template x-for="media in medias" :key="media.id">
+            <div class="stat-card p-2 group">
+                <div class="aspect-square bg-gray-800 rounded-lg overflow-hidden mb-2">
+                    <img :src="media.chemin" :alt="media.nom_fichier" class="w-full h-full object-cover">
+                </div>
+                <p class="text-xs truncate" x-text="media.nom_fichier"></p>
+                <button @click="deleteMedia(media)" class="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="bi bi-x text-white text-xs"></i>
+                </button>
+            </div>
+        </template>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function mediasManager() {
+    return {
+        medias: [],
+        fileSelected: null,
+        uploading: false,
+        
+        async loadMedias() {
+            // Simulation - à remplacer par vrai endpoint
+            this.medias = [];
+        },
+        
+        async uploadFile() {
+            this.uploading = true;
+            showToast('Upload en cours...');
+            setTimeout(() => {
+                this.uploading = false;
+                this.fileSelected = null;
+                showToast('Fichier uploadé !');
+            }, 1000);
+        },
+        
+        async deleteMedia(media) {
+            if (!confirm('Supprimer ce média ?')) return;
+            this.medias = this.medias.filter(m => m.id !== media.id);
+            showToast('Média supprimé', 'error');
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends "public/base.html" %}
+
+{% block title %}Article | Bridge Afrika{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root { --accent: #E65100; --accent-glow: rgba(230,81,0,0.4); }
+    body { background: #0A0A0A; }
+    
+    .article-container { max-width: 780px; margin: 0 auto; padding: 6rem 2rem 4rem; }
+    
+    .back-link {
+        display: inline-flex; align-items: center; gap: 8px;
+        color: var(--accent); font-weight: 600; text-decoration: none;
+        margin-bottom: 2rem; transition: gap 0.3s; font-size: 0.9rem;
+    }
+    .back-link:hover { gap: 14px; }
+    .back-link i { transition: transform 0.3s ease; }
+    .back-link:hover i { transform: translateX(-4px); }
+    
+    .article-cover {
+        width: 100%; max-height: 380px; object-fit: cover;
+        border-radius: 24px; margin-bottom: 2rem;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .article-badge {
+        display: inline-block; background: var(--accent); color: #FFF;
+        padding: 5px 14px; border-radius: 20px; font-size: 0.65rem;
+        font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+        margin-bottom: 1rem;
+    }
+    
+    .article-title {
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 900; color: #FFF; line-height: 1.2; margin-bottom: 1rem;
+    }
+    
+    .article-meta {
+        display: flex; gap: 1.5rem; flex-wrap: wrap;
+        color: #777; font-size: 0.85rem; margin-bottom: 2rem;
+        padding-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .article-meta span { display: flex; align-items: center; gap: 6px; }
+    .article-meta i { color: var(--accent); }
+    
+    .article-body {
+        color: #CCC; line-height: 1.9; font-size: 1.02rem;
+    }
+    .article-body h2 { color: #FFF; font-size: 1.5rem; font-weight: 700; margin: 2.5rem 0 1rem; }
+    .article-body h3 { color: var(--accent); font-size: 1.15rem; font-weight: 600; margin: 2rem 0 0.8rem; }
+    .article-body p { margin-bottom: 1.2rem; }
+    .article-body code { background: #1A1A1A; padding: 2px 8px; border-radius: 4px; font-size: 0.9rem; color: var(--accent); }
+    .article-body pre { background: #0D0D0D; padding: 1.5rem; border-radius: 12px; overflow-x: auto; margin: 1.5rem 0; border: 1px solid rgba(255,255,255,0.04); }
+    .article-body pre code { background: none; padding: 0; color: #BBB; }
+    .article-body blockquote {
+        border-left: 3px solid var(--accent); padding: 1rem 1.5rem;
+        margin: 1.5rem 0; background: rgba(230,81,0,0.04);
+        border-radius: 0 12px 12px 0; font-style: italic; color: #999;
+    }
+    .article-body ul, .article-body ol { margin: 1rem 0 1rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    
+    .article-tags {
+        display: flex; flex-wrap: wrap; gap: 8px;
+        margin-top: 3rem; padding-top: 2rem;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .article-tags span {
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+        padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; color: #888;
+    }
+    
+    .article-cta {
+        text-align: center; margin-top: 4rem; padding: 2.5rem 2rem;
+        background: linear-gradient(135deg, rgba(230,81,0,0.04), transparent);
+        border-radius: 24px; border: 1px solid rgba(230,81,0,0.1);
+    }
+    .article-cta h3 { font-size: 1.3rem; font-weight: 700; color: #FFF; margin-bottom: 0.5rem; }
+    .article-cta p { color: #888; margin-bottom: 1.5rem; font-size: 0.95rem; }
+    .article-cta a {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--accent); color: #FFF; padding: 12px 28px;
+        border-radius: 50px; font-weight: 700; text-decoration: none;
+        transition: all 0.3s;
+    }
+    .article-cta a:hover { box-shadow: 0 8px 25px var(--accent-glow); transform: translateY(-2px); }
+    
+    .loading-state, .error-state {
+        display: flex; align-items: center; justify-content: center;
+        min-height: 80vh; text-align: center;
+    }
+    .loading-state i { font-size: 2rem; color: var(--accent); animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-state i { font-size: 4rem; color: #EF4444; opacity: 0.4; display: block; margin-bottom: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="articleDetail()" x-init="loadArticle()">
+    
+    <div x-show="loading" class="loading-state">
+        <i class="bi bi-arrow-repeat"></i>
+        <span class="text-gray-400 ml-3">Chargement...</span>
+    </div>
+    
+    <div x-show="error" class="error-state">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p class="text-red-400 text-xl mb-4">Article non trouvé</p>
+        <a href="/#blog" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#FFF;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:700;">
+            <i class="bi bi-journal-text"></i> Voir tous les articles
+        </a>
+    </div>
+    
+    <div x-show="!loading && !error" class="article-container">
+        <a href="/#blog" class="back-link">
+            <i class="bi bi-arrow-left"></i> Retour au blog
+        </a>
+        
+        <img :src="article.image_couverture || '/static/placeholder-project.svg'" 
+             :alt="article.titre" class="article-cover" 
+             @error="$el.style.display='none'">
+        
+        <span class="article-badge" x-text="article.categorie || 'Article'"></span>
+        <h1 class="article-title" x-text="article.titre"></h1>
+        
+        <div class="article-meta">
+            <span><i class="bi bi-clock"></i> <span x-text="article.temps_lecture || 5"></span> min</span>
+            <span><i class="bi bi-calendar"></i> <span x-text="formatDate(article.date_publication)"></span></span>
+        </div>
+        
+        <div class="article-body" x-html="renderMarkdown(article.contenu || '')"></div>
+        
+        <div class="article-tags" x-show="article.tags && article.tags.length > 0">
+            <template x-for="tag in article.tags" :key="tag">
+                <span x-text="tag"></span>
+            </template>
+        </div>
+        
+        <div class="article-cta">
+            <h3>Cet article vous a plu ?</h3>
+            <p>Discutons de votre projet. Premier appel gratuit.</p>
+            <a href="/#contact"><i class="bi bi-chat-dots"></i> Me contacter</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function articleDetail() {
+    return {
+        article: {},
+        loading: true,
+        error: false,
+        
+        async loadArticle() {
+            var slug = window.location.pathname.split('/blog/')[1];
+            if (!slug) { this.error = true; this.loading = false; return; }
+            
+            try {
+                var res = await fetch('/api/v1/articles?limit=50');
+                if (!res.ok) throw Error('Non trouvé');
+                var data = await res.json();
+                var articles = data.items || [];
+                this.article = articles.find(function(a) { return a.slug === slug; }) || {};
+                if (!this.article.id) throw Error('Non trouvé');
+                document.title = this.article.titre + ' | Bridge Afrika Blog';
+            } catch(e) {
+                this.error = true;
+            }
+            this.loading = false;
+        },
+        
+        formatDate(dateStr) {
+            if (!dateStr) return '';
+            return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        },
+        
+        renderMarkdown(text) {
+            if (!text) return '';
+            var html = text
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+                .replace(/^- (.+)$/gm, '<li>$1</li>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+            return '<p>' + html + '</p>';
+        }
+    };
+}
+</script>
+{% endblock %}

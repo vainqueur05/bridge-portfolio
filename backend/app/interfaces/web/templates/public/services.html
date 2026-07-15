@@ -1,0 +1,139 @@
+{% extends "public/base.html" %}
+{% block title %}Services | Bridge Afrika{% endblock %}
+{% block meta_description %}Découvrez les services de Bridge Afrika : création de SaaS, APIs, automatisation WhatsApp, et diagnostic numérique.{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root { --accent: #E65100; --accent-glow: rgba(230,81,0,0.4); --gold: #D4AF37; }
+    body { background: #0A0A0A; }
+    
+    .services-hero { text-align: center; padding: 6rem 2rem 3rem; }
+    .services-hero h1 { font-size: 3rem; font-weight: 900; color: #FFF; margin-bottom: 1rem; }
+    .services-hero h1 .accent { color: var(--accent); }
+    .services-hero p { color: #888; max-width: 600px; margin: 0 auto; font-size: 1.1rem; line-height: 1.7; }
+    
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    
+    .service-card {
+        background: #111; border: 1px solid rgba(255,255,255,0.06); border-radius: 24px;
+        padding: 2.5rem; transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        position: relative; overflow: hidden;
+    }
+    .service-card::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, var(--accent), var(--gold));
+        transform: scaleX(0); transition: transform 0.5s ease;
+    }
+    .service-card:hover::before { transform: scaleX(1); }
+    .service-card:hover { transform: translateY(-10px); border-color: rgba(230,81,0,0.3); box-shadow: 0 20px 50px rgba(230,81,0,0.12); }
+    
+    .service-icon { width: 70px; height: 70px; background: rgba(230,81,0,0.08); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; transition: all 0.5s ease; }
+    .service-card:hover .service-icon { background: var(--accent); transform: rotate(-5deg) scale(1.1); box-shadow: 0 15px 30px var(--accent-glow); }
+    .service-icon i { font-size: 2rem; color: var(--accent); transition: color 0.5s ease; }
+    .service-card:hover .service-icon i { color: #FFF; }
+    
+    .service-badge { display: inline-block; background: var(--accent); color: #FFF; padding: 5px 14px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
+    .service-titre { font-size: 1.4rem; font-weight: 800; color: #FFF; margin-bottom: 0.8rem; }
+    .service-desc { color: #888; line-height: 1.7; margin-bottom: 1.2rem; font-size: 0.95rem; }
+    .service-prix { font-size: 1.2rem; font-weight: 700; color: var(--accent); margin-bottom: 1rem; }
+    .service-duree { font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 6px; }
+    
+    .service-details { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); }
+    .service-details h4 { color: var(--gold); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px; }
+    .service-details h4 i { font-size: 1rem; color: var(--accent); }
+    .service-details ul { list-style: none; padding: 0; }
+    .service-details ul li { color: #AAA; font-size: 0.85rem; padding: 4px 0; padding-left: 20px; position: relative; }
+    .service-details ul li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
+    
+    .cta-section { text-align: center; padding: 4rem 2rem; }
+    .cta-section .btn-cta {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--accent); color: #FFF; padding: 14px 32px;
+        border-radius: 50px; font-weight: 700; font-size: 1rem;
+        text-decoration: none; transition: all 0.3s ease;
+    }
+    .cta-section .btn-cta:hover { box-shadow: 0 10px 35px var(--accent-glow); transform: translateY(-3px); }
+    .cta-section .btn-cta i { transition: transform 0.3s ease; }
+    .cta-section .btn-cta:hover i { transform: translateX(4px); }
+
+    .empty-state { text-align: center; padding: 4rem 2rem; color: #555; }
+    .empty-state i { font-size: 4rem; display: block; margin-bottom: 1rem; opacity: 0.2; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="servicesPage()" x-init="loadServices()">
+    
+    <!-- Hero -->
+    <div class="services-hero">
+        <h1>Ce que je <span class="accent">Construis</span></h1>
+        <p>Des solutions digitales sur mesure pour les entrepreneurs et entreprises africaines. Du SaaS à l'automatisation WhatsApp, chaque service est pensé pour durer.</p>
+    </div>
+    
+    <!-- Grille -->
+    <div class="services-grid">
+        <template x-for="service in services" :key="service.id">
+            <div class="service-card">
+                <span x-show="service.badge" class="service-badge" x-text="service.badge"></span>
+                <div class="service-icon">
+                    <i :class="service.icone || 'bi bi-code-slash'"></i>
+                </div>
+                <h3 class="service-titre" x-text="service.titre"></h3>
+                <p class="service-desc" x-text="service.description"></p>
+                <p class="service-prix" x-text="service.tarif_indicatif || ''"></p>
+                <p class="service-duree" x-show="service.duree_estimee">
+                    <i class="bi bi-clock"></i> <span x-text="service.duree_estimee"></span>
+                </p>
+                
+                <!-- Processus -->
+                <div class="service-details" x-show="service.processus">
+                    <h4><i class="bi bi-list-check"></i> Processus</h4>
+                    <ul>
+                        <template x-for="etape in (service.processus || '').split('\n')" :key="etape">
+                            <li x-show="etape.trim()" x-text="etape.trim()"></li>
+                        </template>
+                    </ul>
+                </div>
+                
+                <!-- Livrables -->
+                <div class="service-details" x-show="service.livrables">
+                    <h4><i class="bi bi-box-seam"></i> Livrables</h4>
+                    <p style="font-size:0.85rem;color:#AAA;" x-text="service.livrables"></p>
+                </div>
+            </div>
+        </template>
+        
+        <!-- Message si vide -->
+        <div x-show="services.length === 0" class="empty-state" style="grid-column:1/-1;">
+            <i class="bi bi-tools"></i>
+            <p>Aucun service pour le moment.</p>
+        </div>
+    </div>
+    
+    <!-- CTA -->
+    <div class="cta-section">
+        <p class="text-gray-400 mb-6 text-lg">Un projet en tête ? Parlons-en.</p>
+        <a href="/contact" class="btn-cta">
+            <i class="bi bi-envelope"></i> Me contacter
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function servicesPage() {
+    return {
+        services: [],
+        async loadServices() {
+            try {
+                var res = await fetch('/api/v1/services?actif_only=true');
+                if (res.ok) this.services = await res.json();
+            } catch(e) {
+                console.warn('Services non chargés');
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

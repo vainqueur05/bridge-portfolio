@@ -1,0 +1,193 @@
+{% extends "public/base.html" %}
+{% block title %}Contact | Bridge Afrika{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root { --accent: #E65100; --accent-glow: rgba(230,81,0,0.4); --gold: #D4AF37; }
+    body { background: #0A0A0A; }
+    
+    .contact-section { max-width: 900px; margin: 0 auto; padding: 6rem 2rem 4rem; }
+    .contact-title { font-size: 3rem; font-weight: 900; color: #FFF; text-align: center; margin-bottom: 1rem; }
+    .contact-title .accent { color: var(--accent); }
+    .contact-subtitle { text-align: center; color: #888; margin-bottom: 3rem; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+    @media(max-width:768px){ .contact-grid { grid-template-columns: 1fr; } }
+    
+    .contact-info-card {
+        background: #111; border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px; padding: 2rem;
+        transition: border-color 0.4s ease;
+    }
+    .contact-info-card:hover { border-color: rgba(230,81,0,0.2); }
+    .contact-info-card h3 {
+        color: var(--accent); font-weight: 700; margin-bottom: 1.5rem;
+        display: flex; align-items: center; gap: 10px; font-size: 1.1rem;
+    }
+    .contact-info-card h3 i { font-size: 1.3rem; }
+    
+    .contact-item {
+        display: flex; align-items: center; gap: 14px; padding: 1rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .contact-item:last-child { border-bottom: none; }
+    .contact-item .icon-wrap {
+        width: 44px; height: 44px; border-radius: 50%;
+        background: rgba(230,81,0,0.1); display: flex; align-items: center;
+        justify-content: center; flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+    .contact-item:hover .icon-wrap { background: var(--accent); }
+    .contact-item:hover .icon-wrap i { color: #FFF; }
+    .contact-item .icon-wrap i { font-size: 1.2rem; color: var(--accent); transition: color 0.3s ease; }
+    .contact-item .info-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .contact-item .info-value { font-size: 1rem; color: #FFF; font-weight: 500; }
+    .contact-item a { color: #FFF; text-decoration: none; transition: color 0.3s; }
+    .contact-item a:hover { color: var(--accent); }
+    
+    .form-card {
+        background: #111; border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px; padding: 2rem;
+        transition: border-color 0.4s ease;
+    }
+    .form-card:hover { border-color: rgba(230,81,0,0.2); }
+    .form-card h3 {
+        color: var(--accent); font-weight: 700; margin-bottom: 1.5rem;
+        display: flex; align-items: center; gap: 10px; font-size: 1.1rem;
+    }
+    .form-card h3 i { font-size: 1.3rem; }
+    .form-card input, .form-card textarea {
+        width: 100%; background: #0A0A0A; border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px; padding: 14px; color: #FFF; margin-bottom: 1rem;
+        font-size: 0.95rem; transition: border-color 0.3s ease;
+    }
+    .form-card input:focus, .form-card textarea:focus { outline: none; border-color: var(--accent); }
+    .form-card .btn-submit {
+        width: 100%; background: var(--accent); color: #FFF; border: none;
+        padding: 14px; border-radius: 50px; font-weight: 700; font-size: 1rem;
+        cursor: pointer; transition: all 0.3s ease;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .form-card .btn-submit:hover { box-shadow: 0 10px 30px var(--accent-glow); }
+    .form-card .btn-submit i { transition: transform 0.3s ease; }
+    .form-card .btn-submit:hover i { transform: translateX(4px); }
+    
+    .liens-sociaux-section { display: flex; gap: 12px; margin-top: 1rem; flex-wrap: wrap; }
+    .liens-sociaux-section a {
+        width: 44px; height: 44px; border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center;
+        justify-content: center; color: #999; transition: all 0.3s ease;
+        text-decoration: none; font-size: 1.2rem;
+    }
+    .liens-sociaux-section a:hover {
+        border-color: var(--accent); color: var(--accent);
+        background: rgba(230,81,0,0.1); transform: translateY(-4px);
+    }
+    
+    .success-message {
+        text-align: center; color: #4ade80; font-size: 0.95rem;
+        margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contact-section" x-data="contactPage()" x-init="loadData()">
+    <h1 class="contact-title">Travaillons <span class="accent">Ensemble</span></h1>
+    <p class="contact-subtitle">Une idée, un projet, une question ? Je suis à votre écoute.</p>
+    
+    <div class="contact-grid">
+        <!-- Infos -->
+        <div class="contact-info-card">
+            <h3><i class="bi bi-chat-dots"></i> Me contacter</h3>
+            
+            <div class="contact-item" x-show="config.contact?.whatsapp">
+                <div class="icon-wrap"><i class="bi bi-whatsapp"></i></div>
+                <div>
+                    <p class="info-label">WhatsApp</p>
+                    <a :href="'https://wa.me/' + whatsappClean" target="_blank" x-text="config.contact?.whatsapp"></a>
+                </div>
+            </div>
+            
+            <div class="contact-item" x-show="config.contact?.email">
+                <div class="icon-wrap"><i class="bi bi-envelope"></i></div>
+                <div>
+                    <p class="info-label">Email</p>
+                    <a :href="'mailto:' + config.contact?.email" x-text="config.contact?.email"></a>
+                </div>
+            </div>
+            
+            <div class="contact-item" x-show="config.contact?.telephone">
+                <div class="icon-wrap"><i class="bi bi-telephone"></i></div>
+                <div>
+                    <p class="info-label">Téléphone</p>
+                    <a :href="'tel:' + config.contact?.telephone" x-text="config.contact?.telephone"></a>
+                </div>
+            </div>
+            
+            <div class="contact-item" x-show="config.contact?.adresse">
+                <div class="icon-wrap"><i class="bi bi-geo-alt"></i></div>
+                <div>
+                    <p class="info-label">Adresse</p>
+                    <p class="info-value" x-text="config.contact?.adresse"></p>
+                </div>
+            </div>
+            
+            <h3 style="margin-top:2rem;"><i class="bi bi-share"></i> Réseaux sociaux</h3>
+            <div class="liens-sociaux-section">
+                <template x-for="lien in liens" :key="lien.id">
+                    <a :href="lien.url" target="_blank" rel="noopener" :title="lien.plateforme">
+                        <i :class="lien.icone || 'bi bi-link'"></i>
+                    </a>
+                </template>
+            </div>
+        </div>
+        
+        <!-- Formulaire -->
+        <div class="form-card" x-data="contactForm()">
+            <h3><i class="bi bi-pencil-square"></i> Envoyez-moi un message</h3>
+            <form @submit.prevent="sendMessage()">
+                <input x-model="form.nom" type="text" placeholder="Votre nom" required>
+                <input x-model="form.email" type="email" placeholder="Votre email" required>
+                <textarea x-model="form.contenu" rows="5" placeholder="Votre message..." required></textarea>
+                <button type="submit" :disabled="sending" class="btn-submit">
+                    <i class="bi bi-send"></i>
+                    <span x-show="!sending">Envoyer le message</span>
+                    <span x-show="sending">Envoi en cours...</span>
+                </button>
+            </form>
+            <p x-show="sent" class="success-message">
+                <i class="bi bi-check-circle"></i> Message envoyé avec succès !
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function contactPage(){
+    return{
+        config:{contact:{}},
+        liens:[],
+        get whatsappClean(){ return (this.config.contact?.whatsapp||'').replace(/[^0-9]/g,''); },
+        async loadData(){
+            try{var r=await fetch('/api/v1/site-config');this.config=await r.json();}catch(e){}
+            try{var l=await fetch('/api/v1/liens-sociaux?actif=true');this.liens=await l.json();}catch(e){}
+        }
+    };
+}
+function contactForm(){
+    return{
+        form:{nom:'',email:'',contenu:''},sending:false,sent:false,
+        async sendMessage(){
+            this.sending=true;
+            try{
+                var r=await fetch('/api/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...this.form,source:'formulaire'})});
+                if(r.ok){this.sent=true;this.form={nom:'',email:'',contenu:''};var s=this;setTimeout(function(){s.sent=false;},5000);}
+            }catch(e){}
+            this.sending=false;
+        }
+    };
+}
+</script>
+{% endblock %}

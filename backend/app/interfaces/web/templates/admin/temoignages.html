@@ -1,0 +1,286 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'temoignages' %}
+
+{% block title %}Témoignages | Admin{% endblock %}
+{% block page_title %}Témoignages{% endblock %}
+{% block page_subtitle %}Gérez les avis clients{% endblock %}
+
+{% block content %}
+<div x-data="temoignagesManager()" x-init="loadTemoignages()">
+    
+    <div class="flex justify-end mb-6">
+        <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <i class="bi bi-plus-lg"></i> Nouveau témoignage
+        </button>
+    </div>
+    
+    <!-- Grille -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <template x-for="temoignage in temoignages" :key="temoignage.id">
+            <div class="stat-card">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
+                            <img :src="temoignage.photo_client || '/static/placeholder-project.svg'" 
+                                 class="w-full h-full object-cover"
+                                 @error="$el.src='/static/placeholder-project.svg'">
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm" x-text="temoignage.nom_client"></p>
+                            <p class="text-xs text-gray-500" x-text="temoignage.entreprise"></p>
+                        </div>
+                    </div>
+                    <span :class="temoignage.approuve ? 'badge badge-success' : 'badge badge-warning'" 
+                          x-text="temoignage.approuve ? 'Approuvé' : 'En attente'"></span>
+                </div>
+                
+                <!-- Étoiles -->
+                <div class="text-yellow-400 mb-2">
+                    <template x-for="i in 5" :key="i">
+                        <i :class="i <= temoignage.note ? 'bi-star-fill' : 'bi-star'"></i>
+                    </template>
+                </div>
+                
+                <p class="text-sm text-gray-400 mb-4 line-clamp-3" x-text="temoignage.contenu"></p>
+                
+                <div class="mb-3">
+                    <span x-show="temoignage.featured" class="badge badge-warning text-xs">⭐ Featured</span>
+                </div>
+                
+                <div class="flex justify-end gap-2 pt-3 border-t border-gray-800">
+                    <button @click="toggleApprouve(temoignage)" class="p-2 hover:bg-gray-700 rounded-lg" 
+                            :title="temoignage.approuve ? 'Désapprouver' : 'Approuver'">
+                        <i :class="temoignage.approuve ? 'bi-check-circle-fill text-green-400' : 'bi-check-circle text-gray-500'"></i>
+                    </button>
+                    <button @click="toggleFeatured(temoignage)" class="p-2 hover:bg-gray-700 rounded-lg" title="Featured">
+                        <i :class="temoignage.featured ? 'bi-star-fill text-yellow-400' : 'bi-star text-gray-500'"></i>
+                    </button>
+                    <button @click="openModal(temoignage)" class="p-2 hover:bg-gray-700 rounded-lg" title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button @click="deleteTemoignage(temoignage)" class="p-2 hover:bg-red-900/30 rounded-lg text-red-400" title="Supprimer">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </template>
+        <div x-show="temoignages.length === 0" class="col-span-full text-center py-12 text-gray-500">
+            <i class="bi bi-chat-square-text text-3xl"></i>
+            <p class="mt-2">Aucun témoignage</p>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div x-show="showModal" class="modal-overlay" @click.self="showModal = false">
+        <div class="modal-content" style="max-width:550px;">
+            <h3 class="text-lg font-bold mb-4" x-text="editing ? 'Modifier le témoignage' : 'Nouveau témoignage'"></h3>
+            
+            <form @submit.prevent="saveTemoignage" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">Nom du client *</label>
+                        <input x-model="form.nom_client" required class="form-input">
+                    </div>
+                    <div>
+                        <label class="form-label">Entreprise</label>
+                        <input x-model="form.entreprise" class="form-input">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="form-label">Témoignage *</label>
+                    <textarea x-model="form.contenu" required rows="3" class="form-input"></textarea>
+                </div>
+                
+                <div>
+                    <label class="form-label">Note (1-5)</label>
+                    <div class="flex gap-1 text-2xl">
+                        <template x-for="i in 5" :key="i">
+                            <button type="button" @click="form.note = i" 
+                                    :class="i <= form.note ? 'text-yellow-400' : 'text-gray-600'"
+                                    class="hover:text-yellow-300 transition-colors">
+                                <i :class="i <= form.note ? 'bi-star-fill' : 'bi-star'"></i>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Photo client avec upload -->
+                <div>
+                    <label class="form-label">Photo du client</label>
+                    <div class="flex items-start gap-4">
+                        <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-700 flex-shrink-0 bg-gray-800">
+                            <img :src="photoPreview || form.photo_client || '/static/placeholder-project.svg'" 
+                                 class="w-full h-full object-cover"
+                                 @error="$el.src='/static/placeholder-project.svg'">
+                        </div>
+                        <div class="flex-1">
+                            <label class="btn-outline cursor-pointer text-sm py-2 px-4 inline-flex items-center gap-2">
+                                <i class="bi bi-upload"></i> <span x-text="uploadingPhoto ? 'Upload...' : 'Uploader une photo'"></span>
+                                <input type="file" @change="uploadPhoto" accept="image/*" class="hidden" :disabled="uploadingPhoto">
+                            </label>
+                            <div x-show="form.photo_client" class="mt-2 text-xs text-gray-500 truncate max-w-[180px]" x-text="form.photo_client.split('/').pop()"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="form-label">Lien vidéo (YouTube)</label>
+                    <input x-model="form.video_url" class="form-input" placeholder="https://youtube.com/watch?v=...">
+                </div>
+                
+                <div>
+                    <label class="form-label">Projet associé</label>
+                    <select x-model="form.projet_id" class="form-input">
+                        <option value="">Aucun</option>
+                        <template x-for="p in projetsList" :key="p.id">
+                            <option :value="p.id" x-text="p.titre"></option>
+                        </template>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
+                    <button type="button" @click="showModal = false" class="btn-outline">Annuler</button>
+                    <button type="submit" :disabled="saving" class="btn-primary">
+                        <span x-text="saving ? 'Enregistrement...' : (editing ? 'Modifier' : 'Créer')"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function temoignagesManager() {
+    return {
+        temoignages: [],
+        projetsList: [],
+        showModal: false,
+        editing: null,
+        saving: false,
+        uploadingPhoto: false,
+        photoPreview: null,
+        form: { nom_client: '', entreprise: '', contenu: '', note: 5, photo_client: '', video_url: '', projet_id: null },
+        
+        async loadTemoignages() {
+            try {
+                const [resT, resP] = await Promise.all([
+                    fetch('/api/v1/temoignages?limit=50'),
+                    fetch('/api/v1/projets?statut=publié&limit=50')
+                ]);
+                const dataT = await resT.json();
+                const dataP = await resP.json();
+                this.temoignages = dataT.items || [];
+                this.projetsList = dataP.items || [];
+            } catch(e) {
+                console.warn('Erreur chargement');
+            }
+        },
+        
+        openModal(temoignage) {
+            this.editing = temoignage || null;
+            this.photoPreview = null;
+            if (temoignage) {
+                this.form = { ...temoignage };
+            } else {
+                this.form = { nom_client: '', entreprise: '', contenu: '', note: 5, photo_client: '', video_url: '', projet_id: null };
+            }
+            this.showModal = true;
+        },
+        
+        async uploadPhoto(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Prévisualisation
+            const reader = new FileReader();
+            reader.onload = (ev) => { this.photoPreview = ev.target.result; };
+            reader.readAsDataURL(file);
+            
+            this.uploadingPhoto = true;
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('dossier', 'temoignages');
+            
+            try {
+                const res = await fetch('/api/v1/admin/upload', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    this.form.photo_client = data.url;
+                    this.photoPreview = data.url;
+                } else {
+                    showToast('Erreur upload', 'error');
+                }
+            } catch(e) {
+                showToast('Erreur réseau', 'error');
+            } finally {
+                this.uploadingPhoto = false;
+            }
+        },
+        
+        async saveTemoignage() {
+            if (!this.form.nom_client || !this.form.contenu) {
+                showToast('Remplissez le nom et le témoignage', 'error');
+                return;
+            }
+            
+            this.saving = true;
+            try {
+                const url = this.editing 
+                    ? `/api/v1/admin/temoignages/${this.editing.id}`
+                    : '/api/v1/admin/temoignages';
+                const method = this.editing ? 'PUT' : 'POST';
+                
+                const res = await fetch(url, {
+                    method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(this.form)
+                });
+                
+                if (res.ok) {
+                    showToast(this.editing ? 'Témoignage modifié' : 'Témoignage créé');
+                    this.showModal = false;
+                    this.loadTemoignages();
+                } else {
+                    showToast('Erreur lors de la sauvegarde', 'error');
+                }
+            } catch(e) {
+                showToast('Erreur réseau', 'error');
+            } finally {
+                this.saving = false;
+            }
+        },
+        
+        async toggleApprouve(t) {
+            try {
+                await fetch(`/api/v1/admin/temoignages/${t.id}/approuve`, { method: 'PATCH' });
+                t.approuve = !t.approuve;
+                showToast(t.approuve ? 'Approuvé' : 'Désapprouvé');
+            } catch(e) {}
+        },
+        
+        async toggleFeatured(t) {
+            try {
+                await fetch(`/api/v1/admin/temoignages/${t.id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({featured: !t.featured})
+                });
+                t.featured = !t.featured;
+            } catch(e) {}
+        },
+        
+        async deleteTemoignage(t) {
+            if (!confirm(`Supprimer le témoignage de ${t.nom_client} ?`)) return;
+            try {
+                await fetch(`/api/v1/admin/temoignages/${t.id}`, { method: 'DELETE' });
+                showToast('Témoignage supprimé', 'error');
+                this.loadTemoignages();
+            } catch(e) {}
+        }
+    }
+}
+</script>
+{% endblock %}

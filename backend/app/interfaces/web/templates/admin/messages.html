@@ -1,0 +1,231 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'messages' %}
+
+{% block title %}Messages | Admin{% endblock %}
+{% block page_title %}Messages & Leads{% endblock %}
+{% block page_subtitle %}Gérez vos contacts et prospects{% endblock %}
+
+{% block content %}
+<div x-data="messagesManager()" x-init="loadMessages()">
+    
+    <!-- Filtres -->
+    <div class="flex flex-wrap items-center gap-4 mb-6">
+        <select x-model="filtreStatut" @change="loadMessages()" class="form-input w-auto">
+            <option value="">Tous les statuts</option>
+            <option value="nouveau">Nouveau</option>
+            <option value="contacte">Contacté</option>
+            <option value="negociation">En négociation</option>
+            <option value="gagne">Gagné</option>
+            <option value="perdu">Perdu</option>
+        </select>
+        <button @click="filtreNonLu = !filtreNonLu; loadMessages()" 
+                :class="filtreNonLu ? 'btn-primary' : 'btn-outline'"
+                class="text-sm py-2">
+            <i class="bi bi-envelope"></i> Non lus
+            <span x-show="unreadCount > 0" x-text="'(' + unreadCount + ')'" class="ml-1"></span>
+        </button>
+    </div>
+    
+    <!-- Liste des messages -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Liste -->
+        <div class="lg:col-span-1 stat-card overflow-hidden p-0">
+            <div class="overflow-y-auto" style="max-height: 70vh;">
+                <template x-for="msg in messages" :key="msg.id">
+                    <div @click="selectMessage(msg)"
+                         :class="{'bg-admin-accent/10 border-l-2 border-admin-accent': selectedId === msg.id, 'border-l-2 border-transparent': selectedId !== msg.id}"
+                         class="p-4 cursor-pointer hover:bg-gray-800/50 transition-all border-b border-admin-border">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="font-medium text-sm" x-text="msg.nom || 'Anonyme'"></span>
+                            <span class="text-xs text-gray-500" x-text="formatDate(msg.created_at)"></span>
+                        </div>
+                        <p class="text-sm text-gray-400 truncate" x-text="msg.contenu"></p>
+                        <div class="flex gap-2 mt-2">
+                            <span :class="getStatusBadge(msg.statut_lead)" class="badge text-xs" x-text="msg.statut_lead"></span>
+                            <span x-show="!msg.lu" class="badge badge-danger text-xs">Non lu</span>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="messages.length === 0" class="p-8 text-center text-gray-500">
+                    <i class="bi bi-inbox text-3xl"></i>
+                    <p class="mt-2">Aucun message</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Détail -->
+        <div class="lg:col-span-2 stat-card" x-show="selectedMessage">
+            <template x-if="selectedMessage">
+                <div>
+                    <!-- En-tête -->
+                    <div class="flex items-start justify-between mb-6 pb-4 border-b border-admin-border">
+                        <div>
+                            <h3 class="text-xl font-bold" x-text="selectedMessage.nom || 'Anonyme'"></h3>
+                            <p class="text-sm text-gray-400" x-text="selectedMessage.email"></p>
+                            <p class="text-sm text-gray-500" x-text="selectedMessage.telephone"></p>
+                        </div>
+                        <div class="flex gap-2">
+                            <select x-model="selectedMessage.statut_lead" 
+                                    @change="updateMessage(selectedMessage)"
+                                    class="form-input w-auto text-sm">
+                                <option value="nouveau">Nouveau</option>
+                                <option value="contacte">Contacté</option>
+                                <option value="negociation">En négociation</option>
+                                <option value="gagne">Gagné</option>
+                                <option value="perdu">Perdu</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Contenu -->
+                    <div class="mb-6 p-4 bg-admin-bg rounded-lg">
+                        <p class="whitespace-pre-wrap" x-text="selectedMessage.contenu"></p>
+                    </div>
+                    
+                    <!-- Métadonnées -->
+                    <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
+                        <div>
+                            <span class="text-gray-500">Source :</span>
+                            <span class="badge badge-info ml-2" x-text="selectedMessage.source"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Projet :</span>
+                            <span x-text="selectedMessage.projet_interesse || 'Non spécifié'"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex gap-3 mb-6">
+                        <button @click="toggleLu(selectedMessage)" 
+                                :class="selectedMessage.lu ? 'btn-outline' : 'btn-primary'"
+                                class="text-sm py-2">
+                            <i :class="selectedMessage.lu ? 'bi-envelope-open' : 'bi-envelope'"></i>
+                            <span x-text="selectedMessage.lu ? 'Marquer non lu' : 'Marquer lu'"></span>
+                        </button>
+                        <button @click="toggleRepondu(selectedMessage)"
+                                class="btn-outline text-sm py-2">
+                            <i :class="selectedMessage.repondu ? 'bi-check-circle-fill text-green-400' : 'bi-check-circle'"></i>
+                            <span x-text="selectedMessage.repondu ? 'Répondu' : 'Marquer répondu'"></span>
+                        </button>
+                        <button @click="deleteMessage(selectedMessage)" class="btn-danger text-sm py-2">
+                            <i class="bi bi-trash"></i> Supprimer
+                        </button>
+                    </div>
+                    
+                    <!-- Note interne -->
+                    <div>
+                        <label class="form-label">Note interne</label>
+                        <textarea x-model="selectedMessage.note_interne" 
+                                  @blur="updateMessage(selectedMessage)"
+                                  rows="3" 
+                                  class="form-input"
+                                  placeholder="Ajouter une note privée..."></textarea>
+                    </div>
+                </div>
+            </template>
+            
+            <div x-show="!selectedMessage" class="flex items-center justify-center h-64 text-gray-500">
+                <div class="text-center">
+                    <i class="bi bi-chat-dots text-4xl"></i>
+                    <p class="mt-2">Sélectionnez un message</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function messagesManager() {
+    return {
+        messages: [],
+        selectedMessage: null,
+        selectedId: null,
+        filtreStatut: '',
+        filtreNonLu: false,
+        unreadCount: 0,
+        
+        async loadMessages() {
+            let url = '/api/v1/admin/messages?limit=50';
+            if (this.filtreStatut) url += `&statut_lead=${this.filtreStatut}`;
+            if (this.filtreNonLu) url += '&lu=false';
+            
+            const res = await fetch(url);
+            const data = await res.json();
+            this.messages = data.items || [];
+            this.unreadCount = this.messages.filter(m => !m.lu).length;
+            
+            if (this.selectedId) {
+                this.selectedMessage = this.messages.find(m => m.id === this.selectedId) || null;
+            }
+        },
+        
+        selectMessage(msg) {
+            this.selectedMessage = {...msg};
+            this.selectedId = msg.id;
+            if (!msg.lu) {
+                this.toggleLu(msg);
+            }
+        },
+        
+        async toggleLu(msg) {
+            const res = await fetch(`/api/v1/admin/messages/${msg.id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({lu: !msg.lu})
+            });
+            if (res.ok) {
+                msg.lu = !msg.lu;
+                this.loadMessages();
+            }
+        },
+        
+        async toggleRepondu(msg) {
+            const res = await fetch(`/api/v1/admin/messages/${msg.id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({repondu: !msg.repondu})
+            });
+            if (res.ok) msg.repondu = !msg.repondu;
+        },
+        
+        async updateMessage(msg) {
+            await fetch(`/api/v1/admin/messages/${msg.id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    statut_lead: msg.statut_lead,
+                    note_interne: msg.note_interne
+                })
+            });
+            showToast('Message mis à jour');
+        },
+        
+        async deleteMessage(msg) {
+            if (!confirm('Supprimer ce message ?')) return;
+            await fetch(`/api/v1/admin/messages/${msg.id}`, {method: 'DELETE'});
+            this.selectedMessage = null;
+            this.selectedId = null;
+            showToast('Message supprimé', 'error');
+            this.loadMessages();
+        },
+        
+        getStatusBadge(statut) {
+            const badges = {
+                'nouveau': 'badge-danger',
+                'contacte': 'badge-warning',
+                'negociation': 'badge-info',
+                'gagne': 'badge-success',
+                'perdu': 'badge'
+            };
+            return badges[statut] || '';
+        },
+        
+        formatDate(date) {
+            return date ? new Date(date).toLocaleDateString('fr-FR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : '';
+        }
+    }
+}
+</script>
+{% endblock %}

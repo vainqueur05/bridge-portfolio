@@ -1,0 +1,272 @@
+{% extends "public/base.html" %}
+
+{% block title %}Projet | Bridge Afrika{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root { --accent: #E65100; --accent-glow: rgba(230,81,0,0.4); --gold: #D4AF37; }
+    body { background: #0A0A0A; }
+    
+    .projet-container { max-width: 900px; margin: 0 auto; padding: 6rem 2rem 4rem; }
+    
+    .back-link {
+        display: inline-flex; align-items: center; gap: 8px;
+        color: var(--accent); font-weight: 600; text-decoration: none;
+        margin-bottom: 2rem; transition: gap 0.3s; font-size: 0.9rem;
+    }
+    .back-link:hover { gap: 14px; }
+    .back-link i { transition: transform 0.3s ease; }
+    .back-link:hover i { transform: translateX(-4px); }
+    
+    .projet-cover {
+        width: 100%;
+        max-height: 420px;
+        object-fit: cover;
+        border-radius: 24px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    
+    .projet-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: var(--accent); color: #FFF; padding: 6px 16px;
+        border-radius: 20px; font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;
+    }
+    
+    .projet-title {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 900; color: #FFF; line-height: 1.2; margin-bottom: 1rem;
+    }
+    .projet-subtitle {
+        font-size: 1.1rem; color: #888; line-height: 1.6; margin-bottom: 2rem;
+    }
+    
+    .projet-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 3rem;
+        align-items: start;
+    }
+    @media (max-width: 768px) {
+        .projet-grid { grid-template-columns: 1fr; }
+    }
+    
+    .projet-block {
+        margin-bottom: 2.5rem;
+    }
+    .projet-block h3 {
+        font-size: 1.1rem; font-weight: 700; color: var(--accent);
+        margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px;
+    }
+    .projet-block h3 i { font-size: 1.1rem; }
+    .projet-block p, .projet-block li {
+        color: #BBB; line-height: 1.8; font-size: 0.95rem;
+    }
+    
+    .tech-tags {
+        display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .tech-tags span {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        padding: 6px 14px; border-radius: 20px;
+        font-size: 0.8rem; color: #AAA;
+    }
+    
+    .sidebar-sticky {
+        position: sticky;
+        top: 100px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .info-card {
+        background: #111;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 1.5rem;
+    }
+    .info-card h4 {
+        color: #FFF; font-weight: 700; margin-bottom: 1rem;
+        display: flex; align-items: center; gap: 8px; font-size: 0.95rem;
+    }
+    .info-card h4 i { color: var(--accent); }
+    .info-row {
+        display: flex; justify-content: space-between;
+        padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.03);
+        font-size: 0.85rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #666; }
+    .info-value { color: #CCC; font-weight: 500; }
+    
+    .action-btn {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%; padding: 12px; border-radius: 50px;
+        font-weight: 700; font-size: 0.9rem; text-decoration: none;
+        transition: all 0.3s; cursor: pointer; border: none;
+    }
+    .action-btn-primary {
+        background: var(--accent); color: #FFF;
+    }
+    .action-btn-primary:hover { box-shadow: 0 8px 25px var(--accent-glow); }
+    .action-btn-outline {
+        background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #CCC;
+    }
+    .action-btn-outline:hover { border-color: var(--accent); color: #FFF; }
+    
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+    .gallery-grid img {
+        width: 100%; height: 160px; object-fit: cover;
+        border-radius: 16px; border: 1px solid rgba(255,255,255,0.04);
+        transition: transform 0.3s ease;
+    }
+    .gallery-grid img:hover { transform: scale(1.03); }
+    
+    .loading-state, .error-state {
+        display: flex; align-items: center; justify-content: center;
+        min-height: 80vh; text-align: center;
+    }
+    .loading-state i { font-size: 2rem; color: var(--accent); animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-state i { font-size: 4rem; color: #EF4444; opacity: 0.4; display: block; margin-bottom: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="projetDetail()" x-init="loadProjet()">
+    
+    <div x-show="loading" class="loading-state">
+        <i class="bi bi-arrow-repeat"></i>
+        <span class="text-gray-400 ml-3">Chargement...</span>
+    </div>
+    
+    <div x-show="error" class="error-state">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p class="text-red-400 text-xl mb-4">Projet non trouvé</p>
+        <a href="/#projets" class="action-btn action-btn-primary" style="display:inline-flex;width:auto;padding:12px 28px;">
+            <i class="bi bi-grid"></i> Voir tous les projets
+        </a>
+    </div>
+    
+    <div x-show="!loading && !error" class="projet-container">
+        <a href="/#projets" class="back-link">
+            <i class="bi bi-arrow-left"></i> Retour aux projets
+        </a>
+        
+        <img :src="projet.image_principale || '/static/placeholder-project.svg'" 
+             :alt="projet.titre" class="projet-cover" 
+             @error="$el.src='/static/placeholder-project.svg'">
+        
+        <span class="projet-badge">
+            <i class="bi bi-folder"></i>
+            <span x-text="projet.categorie || 'Projet'"></span>
+        </span>
+        
+        <h1 class="projet-title" x-text="projet.titre"></h1>
+        <p class="projet-subtitle" x-text="projet.description_courte"></p>
+        
+        <div class="projet-grid">
+            <!-- Contenu principal -->
+            <div>
+                <div class="projet-block" x-show="projet.probleme_resolu">
+                    <h3><i class="bi bi-exclamation-circle"></i> Le Problème</h3>
+                    <p x-text="projet.probleme_resolu"></p>
+                </div>
+                
+                <div class="projet-block" x-show="projet.solution_apportee">
+                    <h3><i class="bi bi-lightbulb"></i> La Solution</h3>
+                    <p x-text="projet.solution_apportee"></p>
+                </div>
+                
+                <div class="projet-block" x-show="projet.resultats_chiffres">
+                    <h3><i class="bi bi-graph-up"></i> Les Résultats</h3>
+                    <p x-text="projet.resultats_chiffres"></p>
+                </div>
+                
+                <div class="projet-block" x-show="projet.technologies && projet.technologies.length > 0">
+                    <h3><i class="bi bi-tools"></i> Stack technique</h3>
+                    <div class="tech-tags">
+                        <template x-for="tech in projet.technologies" :key="tech">
+                            <span x-text="tech"></span>
+                        </template>
+                    </div>
+                </div>
+                
+                <div class="projet-block" x-show="projet.galerie_images && projet.galerie_images.length > 0">
+                    <h3><i class="bi bi-images"></i> Galerie</h3>
+                    <div class="gallery-grid">
+                        <template x-for="img in projet.galerie_images" :key="img">
+                            <img :src="img" @error="$el.style.display='none'">
+                        </template>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="sidebar-sticky">
+                <div class="info-card">
+                    <h4><i class="bi bi-info-circle"></i> Détails</h4>
+                    <div class="info-row" x-show="projet.client_nom">
+                        <span class="info-label">Client</span>
+                        <span class="info-value" x-text="projet.client_nom"></span>
+                    </div>
+                    <div class="info-row" x-show="projet.temps_realisation">
+                        <span class="info-label">Délai</span>
+                        <span class="info-value" x-text="projet.temps_realisation"></span>
+                    </div>
+                    <div class="info-row" x-show="projet.date_publication">
+                        <span class="info-label">Date</span>
+                        <span class="info-value" x-text="projet.date_publication"></span>
+                    </div>
+                </div>
+                
+                <a :href="projet.lien_site" target="_blank" x-show="projet.lien_site" class="action-btn action-btn-outline">
+                    <i class="bi bi-globe"></i> Voir le site
+                </a>
+                
+                <a :href="projet.lien_github" target="_blank" x-show="projet.lien_github" class="action-btn action-btn-outline">
+                    <i class="bi bi-github"></i> Code source
+                </a>
+                
+                <a href="/#contact" class="action-btn action-btn-primary">
+                    <i class="bi bi-chat-dots"></i> Un projet similaire ?
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function projetDetail() {
+    return {
+        projet: {},
+        loading: true,
+        error: false,
+        
+        async loadProjet() {
+            var slug = window.location.pathname.split('/projet/')[1];
+            if (!slug) { this.error = true; this.loading = false; return; }
+            
+            try {
+                var res = await fetch('/api/v1/projets/slug/' + slug);
+                if (!res.ok) throw Error('Non trouvé');
+                this.projet = await res.json();
+                document.title = this.projet.titre + ' | Bridge Afrika';
+            } catch(e) {
+                this.error = true;
+            }
+            this.loading = false;
+        }
+    }
+}
+</script>
+{% endblock %}

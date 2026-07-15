@@ -1,0 +1,267 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'liens_sociaux' %}
+
+{% block title %}Liens Sociaux | Admin{% endblock %}
+{% block page_title %}Liens Sociaux{% endblock %}
+{% block page_subtitle %}Gérez vos réseaux sociaux et liens de contact{% endblock %}
+
+{% block content %}
+<div x-data="liensSociauxManager()" x-init="loadLiens()">
+    
+    <div class="flex justify-end mb-6">
+        <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <i class="bi bi-plus-lg"></i> Ajouter un lien
+        </button>
+    </div>
+    
+    <!-- Liste -->
+    <div class="stat-card overflow-hidden">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Plateforme</th>
+                    <th>URL</th>
+                    <th>Icône</th>
+                    <th>Ordre</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-for="lien in liens" :key="lien.id">
+                    <tr>
+                        <td class="font-medium" x-text="lien.plateforme"></td>
+                        <td class="text-sm text-gray-400 truncate max-w-xs">
+                            <a :href="lien.url" target="_blank" class="hover:text-green-400 transition-colors" x-text="lien.url"></a>
+                        </td>
+                        <td>
+                            <i :class="lien.icone" class="text-xl"></i>
+                            <span class="text-xs text-gray-500 ml-1" x-text="lien.icone"></span>
+                        </td>
+                        <td x-text="lien.ordre"></td>
+                        <td>
+                            <span :class="lien.actif ? 'badge badge-success' : 'badge badge-danger'" 
+                                  x-text="lien.actif ? 'Actif' : 'Inactif'"></span>
+                        </td>
+                        <td>
+                            <div class="flex gap-1">
+                                <button @click="openModal(lien)" class="p-2 hover:bg-gray-700 rounded-lg" title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button @click="toggleActif(lien)" class="p-2 hover:bg-gray-700 rounded-lg" 
+                                        :title="lien.actif ? 'Désactiver' : 'Activer'">
+                                    <i :class="lien.actif ? 'bi-eye-slash text-yellow-400' : 'bi-eye text-green-400'"></i>
+                                </button>
+                                <button @click="deleteLien(lien)" class="p-2 hover:bg-red-900/30 rounded-lg text-red-400" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+                <tr x-show="liens.length === 0">
+                    <td colspan="6" class="text-center py-12 text-gray-500">
+                        <i class="bi bi-share text-3xl"></i>
+                        <p class="mt-2">Aucun lien social</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Modal -->
+    <div x-show="showModal" class="modal-overlay" @click.self="showModal = false">
+        <div class="modal-content" style="max-width: 550px;">
+            <h3 class="text-lg font-bold mb-4" x-text="editing ? 'Modifier le lien' : 'Nouveau lien'"></h3>
+            
+            <form @submit.prevent="saveLien" class="space-y-4">
+                <div>
+                    <label class="form-label">Plateforme</label>
+                    <select x-model="form.plateforme" class="form-input" @change="updateIcone()">
+                        <option value="">Choisir une plateforme...</option>
+                        <option value="GitHub">GitHub</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Twitter/X">Twitter / X</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Telegram">Telegram</option>
+                        <option value="Discord">Discord</option>
+                        <option value="Email">Email</option>
+                        <option value="Site web">Site web</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="form-label">URL complète *</label>
+                    <input x-model="form.url" type="text" required class="form-input" 
+                           placeholder="https://github.com/vainqueurkalema">
+                    <p class="text-xs text-gray-500 mt-1">Inclure https:// pour les sites web</p>
+                </div>
+                
+                <div>
+                    <label class="form-label">Icône (Bootstrap Icons)</label>
+                    <div class="flex items-center gap-3">
+                        <input x-model="form.icone" class="form-input flex-1" placeholder="bi-github">
+                        <div class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center">
+                            <i :class="form.icone || 'bi-link'" class="text-xl text-green-400"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Ex: bi-github, bi-linkedin, bi-whatsapp, bi-envelope, bi-globe</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">Ordre d'affichage</label>
+                        <input x-model="form.ordre" type="number" class="form-input" min="0" value="0">
+                    </div>
+                    <div>
+                        <label class="form-label">Texte alternatif</label>
+                        <input x-model="form.texte_alternatif" class="form-input" placeholder="Mon GitHub">
+                    </div>
+                </div>
+                
+                <!-- Aperçu -->
+                <div class="p-4 bg-[#0A0A0A] rounded-xl border border-gray-700">
+                    <p class="text-xs text-gray-500 mb-2">Aperçu :</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full border border-gray-600 flex items-center justify-center">
+                            <i :class="form.icone || 'bi-link'" class="text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-white" x-text="form.plateforme || 'Plateforme'"></p>
+                            <p class="text-xs text-gray-500 truncate max-w-[200px]" x-text="form.url || 'https://...'"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
+                    <button type="button" @click="showModal = false" class="btn-outline">Annuler</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="bi bi-check-lg"></i> <span x-text="editing ? 'Modifier' : 'Ajouter'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function liensSociauxManager() {
+    return {
+        liens: [],
+        showModal: false,
+        editing: null,
+        form: { plateforme: '', url: '', icone: 'bi-link', ordre: 0, texte_alternatif: '', actif: true },
+        
+        async loadLiens() {
+            try {
+                var res = await fetch('/api/v1/liens-sociaux?actif=false');
+                if (res.ok) {
+                    this.liens = await res.json();
+                }
+            } catch(e) {
+                console.error('Erreur chargement liens:', e);
+            }
+        },
+        
+        openModal(lien) {
+            if (lien) {
+                this.editing = lien;
+                this.form = { 
+                    plateforme: lien.plateforme || '',
+                    url: lien.url || '',
+                    icone: lien.icone || 'bi-link',
+                    ordre: lien.ordre || 0,
+                    texte_alternatif: lien.texte_alternatif || '',
+                    actif: lien.actif !== undefined ? lien.actif : true
+                };
+            } else {
+                this.editing = null;
+                this.form = { plateforme: '', url: '', icone: 'bi-link', ordre: this.liens.length, texte_alternatif: '', actif: true };
+            }
+            this.showModal = true;
+        },
+        
+        updateIcone() {
+            var icones = {
+                'GitHub': 'bi-github',
+                'LinkedIn': 'bi-linkedin',
+                'Twitter/X': 'bi-twitter-x',
+                'WhatsApp': 'bi-whatsapp',
+                'Instagram': 'bi-instagram',
+                'YouTube': 'bi-youtube',
+                'Facebook': 'bi-facebook',
+                'TikTok': 'bi-tiktok',
+                'Telegram': 'bi-telegram',
+                'Discord': 'bi-discord',
+                'Email': 'bi-envelope',
+                'Site web': 'bi-globe',
+                'Autre': 'bi-link'
+            };
+            this.form.icone = icones[this.form.plateforme] || 'bi-link';
+        },
+        
+        async saveLien() {
+            if (!this.form.plateforme || !this.form.url) {
+                alert('Veuillez remplir la plateforme et l\'URL');
+                return;
+            }
+            
+            var url = this.editing 
+                ? '/api/v1/admin/liens-sociaux/' + this.editing.id
+                : '/api/v1/admin/liens-sociaux';
+            var method = this.editing ? 'PUT' : 'POST';
+            
+            try {
+                var res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.form)
+                });
+                
+                if (res.ok) {
+                    this.showModal = false;
+                    await this.loadLiens();
+                    alert(this.editing ? '✅ Lien modifié !' : '✅ Lien ajouté !');
+                } else {
+                    var err = await res.json();
+                    alert('❌ Erreur : ' + (err.detail || 'Impossible de sauvegarder'));
+                }
+            } catch(e) {
+                alert('❌ Erreur réseau');
+            }
+        },
+        
+        async toggleActif(lien) {
+            try {
+                var res = await fetch('/api/v1/admin/liens-sociaux/' + lien.id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ actif: !lien.actif })
+                });
+                if (res.ok) {
+                    lien.actif = !lien.actif;
+                }
+            } catch(e) {}
+        },
+        
+        async deleteLien(lien) {
+            if (!confirm('Supprimer le lien ' + lien.plateforme + ' ?')) return;
+            try {
+                var res = await fetch('/api/v1/admin/liens-sociaux/' + lien.id, { method: 'DELETE' });
+                if (res.ok) {
+                    await this.loadLiens();
+                    alert('🗑️ Lien supprimé');
+                }
+            } catch(e) {}
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'utilisateurs' %}
+
+{% block title %}Utilisateurs | Admin{% endblock %}
+{% block page_title %}Utilisateurs{% endblock %}
+{% block page_subtitle %}Gérez les accès administrateur{% endblock %}
+
+{% block content %}
+<div x-data="usersManager()" x-init="loadUsers()">
+    
+    <div class="flex justify-end mb-6">
+        <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <i class="bi bi-person-plus"></i> Nouvel utilisateur
+        </button>
+    </div>
+    
+    <div class="stat-card overflow-hidden">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-for="user in users" :key="user.id">
+                    <tr>
+                        <td class="font-medium" x-text="user.nom || 'N/A'"></td>
+                        <td class="text-sm text-gray-400" x-text="user.email"></td>
+                        <td><span class="badge badge-info" x-text="user.role"></span></td>
+                        <td>
+                            <span :class="user.actif ? 'badge badge-success' : 'badge badge-danger'" 
+                                  x-text="user.actif ? 'Actif' : 'Inactif'"></span>
+                        </td>
+                        <td>
+                            <button @click="toggleActif(user)" class="p-2 hover:bg-gray-700 rounded-lg">
+                                <i :class="user.actif ? 'bi-lock text-yellow-400' : 'bi-unlock text-green-400'"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function usersManager() {
+    return {
+        users: [],
+        
+        async loadUsers() {
+            const res = await fetch('/api/v1/admin/users');
+            this.users = await res.json();
+        },
+        
+        openModal() {
+            showToast('Fonctionnalité à venir');
+        },
+        
+        async toggleActif(user) {
+            showToast('Fonctionnalité à venir');
+        }
+    }
+}
+</script>
+{% endblock %}

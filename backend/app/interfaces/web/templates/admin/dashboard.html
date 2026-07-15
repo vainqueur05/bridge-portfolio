@@ -1,0 +1,200 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'dashboard' %}
+
+{% block title %}Dashboard | Bridge Afrika Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Vue d'ensemble de votre portfolio{% endblock %}
+
+{% block extra_head %}
+<style>
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    @keyframes pulse-glow{0%,100%{box-shadow:0 0 5px currentColor}50%{box-shadow:0 0 25px currentColor,0 0 50px currentColor}}
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    @keyframes slideInUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes bounce-icon{0%,100%{transform:scale(1)}30%{transform:scale(1.3)}50%{transform:scale(.9)}70%{transform:scale(1.1)}}
+    @keyframes toastSlideIn{from{transform:translateX(100%) scale(.8);opacity:0}to{transform:translateX(0) scale(1);opacity:1}}
+    @keyframes sharinganSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @keyframes sharinganGlow{0%,100%{box-shadow:0 0 4px #FF0000,0 0 12px rgba(255,0,0,.6)}50%{box-shadow:0 0 8px #FF0000,0 0 24px rgba(255,0,0,.9),0 0 40px rgba(200,0,0,.4)}}
+    @keyframes crowWing{0%,100%{transform:rotate(0deg) translateY(0)}50%{transform:rotate(-20deg) translateY(-3px)}}
+    @keyframes crowWingR{0%,100%{transform:rotate(0deg) translateY(0)}50%{transform:rotate(20deg) translateY(-3px)}}
+    @keyframes fly1{0%,100%{transform:translate(0,0) rotate(0deg);opacity:.3}25%{transform:translate(30px,-40px) rotate(8deg);opacity:.8}50%{transform:translate(55px,-55px) rotate(15deg);opacity:.2}75%{transform:translate(15px,-20px) rotate(-5deg);opacity:.7}}
+    @keyframes fly2{0%,100%{transform:translate(0,0) rotate(0deg);opacity:.2}30%{transform:translate(-35px,-45px) rotate(-10deg);opacity:.7}60%{transform:translate(-60px,-30px) rotate(-20deg);opacity:.15}85%{transform:translate(-15px,-35px) rotate(-5deg);opacity:.6}}
+    @keyframes fly3{0%,100%{transform:translate(0,0) rotate(0deg);opacity:.15}40%{transform:translate(25px,-55px) rotate(12deg);opacity:.7}70%{transform:translate(45px,-25px) rotate(18deg);opacity:.1}}
+    @keyframes fly4{0%,100%{transform:translate(0,0) rotate(0deg);opacity:.25}35%{transform:translate(-25px,-40px) rotate(-8deg);opacity:.65}65%{transform:translate(-45px,-50px) rotate(-15deg);opacity:.15}}
+    @keyframes fly5{0%,100%{transform:translate(0,0) rotate(0deg);opacity:.1}50%{transform:translate(20px,-45px) rotate(6deg);opacity:.6}}
+    @keyframes fly6{0%,100%{transform:translate(0,0) rotate(0deg);opacity:.2}45%{transform:translate(-40px,-35px) rotate(-12deg);opacity:.7}75%{transform:translate(-25px,-55px) rotate(-5deg);opacity:.15}}
+    @keyframes fly7{0%,100%{transform:translate(0,0) rotate(0deg);opacity:.1}55%{transform:translate(35px,-30px) rotate(10deg);opacity:.55}90%{transform:translate(50px,-45px) rotate(20deg);opacity:.05}}
+    @keyframes eyesPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+
+    .icon-float{animation:float 3s ease-in-out infinite}
+    .icon-float-delayed{animation:float 3s ease-in-out .5s infinite}
+    .icon-float-slow{animation:float 4s ease-in-out 1s infinite}
+    .icon-pulse{animation:pulse-glow 2s ease-in-out infinite}
+    .icon-bounce:hover{animation:bounce-icon .6s ease-in-out}
+    .shimmer-text{background:linear-gradient(90deg,#00FF41 0%,#00CC33 25%,#00FF41 50%,#00CC33 75%,#00FF41 100%);background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s linear infinite;background-clip:text}
+    .stat-card-animated{animation:slideInUp .5s ease-out forwards;opacity:0}
+    .stat-card-animated:nth-child(1){animation-delay:0s}
+    .stat-card-animated:nth-child(2){animation-delay:.1s}
+    .stat-card-animated:nth-child(3){animation-delay:.2s}
+    .stat-card-animated:nth-child(4){animation-delay:.3s}
+    .toast-animated{animation:toastSlideIn .4s cubic-bezier(.68,-.55,.265,1.55)}
+
+    /* === SCÈNE : YEUX + 7 CORBEAUX === */
+    .itachi-scene{position:relative;width:160px;height:120px;cursor:pointer}
+    .itachi-scene:hover .eyes-container{animation:eyesPulse .8s ease-in-out infinite}
+
+    /* Yeux Sharingan */
+    .eyes-container{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:20px;z-index:5;transition:all .3s ease}
+    .eye{position:relative;width:22px;height:16px;background:#0a0a0a;border-radius:50%;overflow:visible}
+    .sharingan{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#FF0000 0%,#8B0000 35%,#330000 75%,#000 100%);animation:sharinganGlow 2s ease-in-out infinite}
+    .sharingan::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1.5px solid rgba(255,0,0,.35);animation:sharinganSpin 4s linear infinite}
+    .tomoe{position:absolute;width:3px;height:3px;background:#FF0000;border-radius:50%}
+    .t1{top:2px;left:50%;transform:translateX(-50%)}
+    .t2{bottom:2px;right:2px}
+    .t3{bottom:2px;left:2px}
+    .eye-shine{position:absolute;top:3px;left:4px;width:4px;height:2.5px;background:rgba(255,255,255,.2);border-radius:50%}
+
+    /* 7 Corbeaux */
+    .crow{position:absolute;pointer-events:none;z-index:10}
+    .crow-body{position:relative;width:12px;height:7px;background:#080808;border-radius:50%}
+    .crow-body::before{content:'';position:absolute;top:-2px;left:-3.5px;width:7px;height:3.5px;background:#080808;border-radius:50%;transform:rotate(-25deg);animation:crowWing .22s ease-in-out infinite}
+    .crow-body::after{content:'';position:absolute;top:-2px;right:-3.5px;width:7px;height:3.5px;background:#080808;border-radius:50%;transform:rotate(25deg);animation:crowWingR .22s ease-in-out .11s infinite}
+    .c1{top:5px;left:10px;animation:fly1 5s ease-in-out infinite}
+    .c2{top:15px;right:5px;animation:fly2 6s ease-in-out infinite;animation-delay:.8s}
+    .c3{bottom:10px;left:0;animation:fly3 5.5s ease-in-out infinite;animation-delay:1.6s}
+    .c4{top:0;right:20px;animation:fly4 6.5s ease-in-out infinite;animation-delay:2.4s}
+    .c5{bottom:5px;right:10px;animation:fly5 7s ease-in-out infinite;animation-delay:3.2s}
+    .c6{top:20px;left:30px;animation:fly6 5.8s ease-in-out infinite;animation-delay:4s}
+    .c7{bottom:20px;left:25px;animation:fly7 6.2s ease-in-out infinite;animation-delay:4.8s}
+
+    /* Fond ambiance */
+    .itachi-ambiance{position:absolute;inset:-30px;background:radial-gradient(ellipse at 50% 50%,rgba(180,0,0,.06) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="dashboardData()" x-init="loadStats()">
+    
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-2xl font-bold flex items-center gap-3">
+                <i class="bi bi-speedometer2 text-green-400 icon-float"></i>
+                <span class="shimmer-text">Dashboard</span>
+            </h2>
+        </div>
+        
+        <!-- YEUX SHARINGAN + 7 CORBEAUX -->
+        <div class="itachi-scene" @click="itachiClick" title="Clique-moi ! 🐦‍⬛">
+            <div class="itachi-ambiance"></div>
+            
+            <div class="eyes-container">
+                <div class="eye">
+                    <div class="sharingan"><div class="tomoe t1"></div><div class="tomoe t2"></div><div class="tomoe t3"></div></div>
+                    <div class="eye-shine"></div>
+                </div>
+                <div class="eye">
+                    <div class="sharingan"><div class="tomoe t1"></div><div class="tomoe t2"></div><div class="tomoe t3"></div></div>
+                    <div class="eye-shine"></div>
+                </div>
+            </div>
+            
+            <div class="crow c1"><div class="crow-body"></div></div>
+            <div class="crow c2"><div class="crow-body"></div></div>
+            <div class="crow c3"><div class="crow-body"></div></div>
+            <div class="crow c4"><div class="crow-body"></div></div>
+            <div class="crow c5"><div class="crow-body"></div></div>
+            <div class="crow c6"><div class="crow-body"></div></div>
+            <div class="crow c7"><div class="crow-body"></div></div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat-card stat-card-animated group cursor-pointer" @click="window.location.href='/admin/projets'">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-lg bg-green-900/30 flex items-center justify-center group-hover:bg-green-900/50 transition-all icon-float"><i class="bi bi-folder text-2xl text-green-400 icon-bounce"></i></div>
+                <span class="text-xs text-gray-500">Total</span>
+            </div>
+            <h3 class="text-3xl font-bold mb-1 group-hover:text-green-400" x-text="stats.projets_total">0</h3>
+            <p class="text-sm text-gray-400">Projets</p>
+            <div class="mt-3"><span class="badge badge-success" x-text="stats.projets_publies + ' publiés'">0</span></div>
+            <div class="mt-3 h-1 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-green-400 rounded-full transition-all duration-1000" :style="'width: '+(stats.projets_total>0?(stats.projets_publies/stats.projets_total*100):0)+'%'"></div></div>
+        </div>
+        <div class="stat-card stat-card-animated group cursor-pointer" @click="window.location.href='/admin/articles'">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center group-hover:bg-blue-900/50 transition-all icon-float-delayed"><i class="bi bi-journal-text text-2xl text-blue-400 icon-bounce"></i></div>
+                <span class="text-xs text-gray-500">Publiés</span>
+            </div>
+            <h3 class="text-3xl font-bold mb-1 group-hover:text-blue-400" x-text="stats.articles_total">0</h3>
+            <p class="text-sm text-gray-400">Articles</p>
+            <div class="mt-3"><span class="badge badge-info" x-text="stats.articles_publies + ' publiés'">0</span></div>
+            <div class="mt-3 h-1 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-blue-400 rounded-full transition-all duration-1000" :style="'width: '+(stats.articles_total>0?(stats.articles_publies/stats.articles_total*100):0)+'%'"></div></div>
+        </div>
+        <div class="stat-card stat-card-animated group cursor-pointer" @click="window.location.href='/admin/temoignages'">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-lg bg-yellow-900/30 flex items-center justify-center group-hover:bg-yellow-900/50 transition-all icon-float-slow"><i class="bi bi-star text-2xl text-yellow-400 icon-bounce"></i></div>
+                <span class="text-xs text-gray-500">Approuvés</span>
+            </div>
+            <h3 class="text-3xl font-bold mb-1 group-hover:text-yellow-400" x-text="stats.temoignages_total">0</h3>
+            <p class="text-sm text-gray-400">Témoignages</p>
+            <div class="mt-3"><span class="badge badge-warning" x-text="stats.temoignages_approuves + ' approuvés'">0</span></div>
+            <div class="mt-3 h-1 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-yellow-400 rounded-full transition-all duration-1000" :style="'width: '+(stats.temoignages_total>0?(stats.temoignages_approuves/stats.temoignages_total*100):0)+'%'"></div></div>
+        </div>
+        <div class="stat-card stat-card-animated group cursor-pointer relative overflow-hidden" @click="window.location.href='/admin/messages'">
+            <div x-show="stats.messages_non_lus > 0" class="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full icon-pulse"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-lg bg-red-900/30 flex items-center justify-center group-hover:bg-red-900/50 transition-all icon-float"><i class="bi bi-chat-dots text-2xl text-red-400 icon-bounce"></i></div>
+                <span class="text-xs text-gray-500">Non lus</span>
+            </div>
+            <h3 class="text-3xl font-bold mb-1 group-hover:text-red-400" x-text="stats.messages_non_lus">0</h3>
+            <p class="text-sm text-gray-400">Messages</p>
+            <div class="mt-3"><span class="badge badge-danger" x-text="stats.leads_nouveaux + ' leads'">0</span></div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-bold flex items-center gap-2"><i class="bi bi-chat-dots text-green-400 icon-float"></i>Derniers messages</h3><a href="/admin/messages" class="text-sm text-green-400 hover:underline">Voir tout <i class="bi bi-arrow-right"></i></a></div>
+            <div class="space-y-3">
+                <template x-for="(msg, index) in derniersMessages" :key="msg.id">
+                    <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-admin-bg transition-all cursor-pointer" :style="'animation: slideInUp .4s ease-out '+(index*.1)+'s both'" @click="window.location.href='/admin/messages'">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center flex-shrink-0"><span class="text-sm font-bold" x-text="msg.nom?msg.nom[0].toUpperCase():'?'"></span></div>
+                        <div class="flex-1 min-w-0"><div class="flex items-center justify-between"><p class="font-medium text-sm" x-text="msg.nom||'Anonyme'"></p><span class="text-xs text-gray-500" x-text="formatDate(msg.created_at)"></span></div><p class="text-sm text-gray-400 truncate" x-text="msg.contenu"></p><div class="flex gap-2 mt-1"><span :class="'badge text-xs '+(msg.lu?'badge-success':'badge-danger')" x-text="msg.lu?'✓ Lu':'● Non lu'"></span><span class="badge badge-info text-xs" x-text="msg.statut_lead"></span></div></div>
+                    </div>
+                </template>
+                <div x-show="derniersMessages.length===0" class="text-center text-gray-500 py-8"><i class="bi bi-inbox text-4xl mb-2 block icon-float-slow"></i><p>Aucun message</p></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-bold flex items-center gap-2"><i class="bi bi-folder text-orange-400 icon-float-delayed"></i>Projets récents</h3><a href="/admin/projets" class="text-sm text-orange-400 hover:underline">Gérer <i class="bi bi-arrow-right"></i></a></div>
+            <div class="space-y-3">
+                <template x-for="(projet, index) in derniersProjets" :key="projet.id">
+                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-admin-bg transition-all cursor-pointer" :style="'animation: slideInUp .4s ease-out '+(index*.1)+'s both'" @click="window.location.href='/admin/projets/'+projet.id+'/edit'">
+                        <div class="w-12 h-12 rounded-lg bg-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden"><img :src="projet.image_principale||'/static/placeholder-project.svg'" :alt="projet.titre" class="w-full h-full object-cover" onerror="this.src='/static/placeholder-project.svg'"></div>
+                        <div class="flex-1 min-w-0"><p class="font-medium text-sm truncate" x-text="projet.titre"></p><p class="text-xs text-gray-500" x-text="projet.categorie||'Non catégorisé'"></p></div>
+                        <span :class="'badge text-xs '+getStatusBadge(projet.statut)" x-text="projet.statut"></span>
+                    </div>
+                </template>
+                <div x-show="derniersProjets.length===0" class="text-center text-gray-500 py-8"><i class="bi bi-folder2-open text-4xl mb-2 block icon-float-slow"></i><p>Aucun projet</p></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-8 stat-card">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="bi bi-lightning-charge text-yellow-400 icon-bounce"></i>Actions rapides</h3>
+        <div class="flex flex-wrap gap-4">
+            <a href="/admin/projets/new" class="btn-primary flex items-center gap-2 group relative overflow-hidden"><i class="bi bi-plus-lg group-hover:rotate-90 transition-transform duration-300"></i>Nouveau projet<span class="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span></a>
+            <a href="/admin/articles/new" class="btn-outline flex items-center gap-2 group"><i class="bi bi-pencil group-hover:-translate-y-1 transition-transform"></i>Article</a>
+            <a href="/admin/temoignages" class="btn-outline flex items-center gap-2 group"><i class="bi bi-star group-hover:scale-125 transition-transform"></i>Témoignage</a>
+            <a href="/admin/liens-sociaux" class="btn-outline flex items-center gap-2 group"><i class="bi bi-share group-hover:rotate-45 transition-transform"></i>Liens</a>
+            <a href="/admin/parametres" class="btn-outline flex items-center gap-2 group"><i class="bi bi-sliders group-hover:translate-x-1 transition-transform"></i>Paramètres</a>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function dashboardData(){return{stats:{projets_total:0,projets_publies:0,articles_total:0,articles_publies:0,temoignages_total:0,temoignages_approuves:0,messages_non_lus:0,leads_nouveaux:0},derniersMessages:[],derniersProjets:[],async loadStats(){try{const[p,a,t,m,n]=await Promise.all([fetch('/api/v1/projets?limit=1').then(r=>r.json()),fetch('/api/v1/articles?limit=1').then(r=>r.json()),fetch('/api/v1/temoignages?limit=1').then(r=>r.json()),fetch('/api/v1/admin/messages?limit=5').then(r=>r.json()),fetch('/api/v1/admin/messages?lu=false&limit=1').then(r=>r.json())]);this.stats.projets_total=p.total||0;this.stats.articles_total=a.total||0;this.stats.temoignages_total=t.total||0;this.stats.messages_non_lus=n.total||0;const[pp,ap,ta]=await Promise.all([fetch('/api/v1/projets?statut=publié&limit=1').then(r=>r.json()),fetch('/api/v1/articles?statut=publié&limit=1').then(r=>r.json()),fetch('/api/v1/temoignages?approuve=true&limit=1').then(r=>r.json())]);this.stats.projets_publies=pp.total||0;this.stats.articles_publies=ap.total||0;this.stats.temoignages_approuves=ta.total||0;this.derniersMessages=m.items||[];const pr=await fetch('/api/v1/projets?limit=5').then(r=>r.json());this.derniersProjets=pr.items||[]}catch(e){console.error(e)}},getStatusBadge(s){return{publié:'badge-success',brouillon:'badge-warning',archivé:'badge-danger'}[s]||'badge-info'},formatDate(d){if(!d)return'';const dt=new Date(d),now=new Date(),diff=now-dt,m=Math.floor(diff/6e4),h=Math.floor(diff/36e5),j=Math.floor(diff/864e5);if(m<60)return`Il y a ${m} min`;if(h<24)return`Il y a ${h}h`;if(j<7)return`Il y a ${j}j`;return dt.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})},itachiClick(){const q=["Ceux qui ne comprennent pas la douleur ne pourront jamais comprendre la paix.","Chaque vie humaine est précieuse.","Le mensonge parfait n'existe pas.","Peu importe ce que tu deviens, je t'aimerai toujours."];const t=document.createElement('div');t.className='toast toast-animated toast-success';t.innerHTML='🐦‍⬛ <strong>Itachi :</strong> « '+q[Math.floor(Math.random()*q.length)]+' »';document.getElementById('toast-container').appendChild(t);setTimeout(()=>t.remove(),5000)}}}
+</script>
+{% endblock %}

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="after-midnight">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Admin | Bridge Afrika{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'pixel': ['"Press Start 2P"', 'monospace'],
+                        'retro': ['"VT323"', 'monospace'],
+                        'body': ['"Inter"', 'sans-serif'],
+                    },
+                    colors: {
+                        'admin-bg': '#0A0A0A',
+                        'admin-card': '#111111',
+                        'admin-border': '#1F1F1F',
+                        'admin-accent': '#00FF41',
+                        'admin-danger': '#FF4444',
+                        'admin-warning': '#FFB800',
+                        'admin-info': '#00AAFF',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    
+    <style>
+        * { transition: all 0.2s ease; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0A0A0A;
+            color: #E0E0E0;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, #0D0D0D 0%, #0A0A0A 100%);
+            border-right: 1px solid #1F1F1F;
+            width: 260px;
+            min-height: 100vh;
+        }
+        
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #A0A0A0;
+            border-radius: 8px;
+            margin: 2px 12px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-link:hover {
+            background: #1A1A1A;
+            color: #00FF41;
+        }
+        
+        .sidebar-link.active {
+            background: #1A1A1A;
+            color: #00FF41;
+            border-left: 3px solid #00FF41;
+        }
+        
+        .sidebar-link i {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* Cards */
+        .stat-card {
+            background: #111111;
+            border: 1px solid #1F1F1F;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            border-color: #00FF41;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+        }
+        
+        /* Table */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .admin-table th {
+            background: #0D0D0D;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #808080;
+            border-bottom: 2px solid #1F1F1F;
+        }
+        
+        .admin-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #1A1A1A;
+            font-size: 0.9rem;
+        }
+        
+        .admin-table tr:hover td {
+            background: #0D0D0D;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: #00FF41;
+            color: #0A0A0A;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background: #00CC33;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+        
+        .btn-danger {
+            background: #FF4444;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .btn-danger:hover {
+            background: #CC0000;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #E0E0E0;
+            padding: 10px 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .btn-outline:hover {
+            border-color: #00FF41;
+            color: #00FF41;
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-success { background: #003300; color: #00FF41; }
+        .badge-warning { background: #332200; color: #FFB800; }
+        .badge-danger { background: #330000; color: #FF4444; }
+        .badge-info { background: #001133; color: #00AAFF; }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #111111;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        /* Inputs */
+        .form-input {
+            width: 100%;
+            background: #0D0D0D;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: #E0E0E0;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #00FF41;
+            box-shadow: 0 0 0 3px rgba(0, 255, 65, 0.1);
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #A0A0A0;
+            margin-bottom: 6px;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+        }
+        
+        .toast-success { background: #003300; color: #00FF41; border: 1px solid #00FF41; }
+        .toast-error { background: #330000; color: #FF4444; border: 1px solid #FF4444; }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00FF41; }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="flex">
+    
+    {# Sidebar #}
+    <aside class="sidebar flex flex-col" x-data="{ open: true }">
+        <!-- Logo -->
+        <div class="p-6 border-b border-admin-border">
+            <h1 class="font-pixel text-admin-accent text-sm tracking-wider">
+                BRIDGE<span class="text-white">AFRIKA</span>
+            </h1>
+            <p class="text-xs text-gray-500 mt-1">Admin Panel v4.0</p>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="flex-1 py-4 space-y-1">
+            <a href="/admin" class="sidebar-link {% if active_page == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                Dashboard
+            </a>
+            <a href="/admin/projets" class="sidebar-link {% if active_page == 'projets' %}active{% endif %}">
+                <i class="bi bi-folder"></i>
+                Projets
+            </a>
+            <a href="/admin/articles" class="sidebar-link {% if active_page == 'articles' %}active{% endif %}">
+                <i class="bi bi-journal-text"></i>
+                Articles
+            </a>
+            <a href="/admin/temoignages" class="sidebar-link {% if active_page == 'temoignages' %}active{% endif %}">
+                <i class="bi bi-star"></i>
+                Témoignages
+            </a>
+            <a href="/admin/services" class="sidebar-link {% if active_page == 'services' %}active{% endif %}">
+                <i class="bi bi-gear"></i>
+                Services
+            </a>
+            <a href="/admin/messages" class="sidebar-link {% if active_page == 'messages' %}active{% endif %}">
+                <i class="bi bi-chat-dots"></i>
+                Messages
+                <span id="unread-badge" class="badge badge-danger ml-auto hidden">0</span>
+            </a>
+            <a href="/admin/medias" class="sidebar-link {% if active_page == 'medias' %}active{% endif %}">
+                <i class="bi bi-images"></i>
+                Médias
+            </a>
+        </nav>
+        
+        <!-- Divider -->
+        <div class="border-t border-admin-border mx-4"></div>
+        
+        <!-- Bottom nav -->
+        <nav class="py-4 space-y-1">
+            <a href="/admin/parametres" class="sidebar-link {% if active_page == 'parametres' %}active{% endif %}">
+                <i class="bi bi-sliders"></i>
+                Paramètres
+            </a>
+            <a href="/admin/utilisateurs" class="sidebar-link {% if active_page == 'utilisateurs' %}active{% endif %}">
+                <i class="bi bi-people"></i>
+                Utilisateurs
+            </a>
+
+            <a href="/admin/liens-sociaux" class="sidebar-link {% if active_page == 'liens_sociaux' %}active{% endif %}">
+                <i class="bi bi-share"></i>
+                Liens sociaux
+            </a>
+
+            <a href="/admin/technologies" class="sidebar-link {% if active_page == 'technologies' %}active{% endif %}">
+    <i class="bi bi-cpu"></i>
+    Technologies
+</a>
+
+            <form action="/api/v1/auth/logout" method="POST" class="m-0 p-0">
+                <button type="submit" class="sidebar-link text-red-400 hover:text-red-300 w-full text-left">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Déconnexion
+                </button>
+            </form>
+        </nav>
+        
+        <!-- User info -->
+        <div class="p-4 border-t border-admin-border">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-admin-accent flex items-center justify-center text-black font-bold text-sm">
+                    {{ user.nom[:1] if user else 'A' }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium truncate">{{ user.nom or 'Admin' }}</p>
+                    <p class="text-xs text-gray-500 truncate">{{ user.email or '' }}</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+    
+    {# Main Content #}
+    <main class="flex-1 overflow-y-auto" style="max-height: 100vh;">
+        <!-- Top bar -->
+        <header class="sticky top-0 z-10 bg-admin-bg/95 backdrop-blur border-b border-admin-border px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold">{% block page_title %}Dashboard{% endblock %}</h2>
+                    <p class="text-sm text-gray-500">{% block page_subtitle %}Vue d'ensemble{% endblock %}</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="btn-outline text-sm py-2">
+                        <i class="bi bi-bell"></i>
+                    </button>
+                    <a href="/" target="_blank" class="btn-outline text-sm py-2">
+                        <i class="bi bi-eye"></i> Voir le site
+                    </a>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Page Content -->
+        <div class="p-8">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+    
+    {# Toast Container #}
+    <div id="toast-container" x-data="{ toasts: [] }" @add-toast.window="toasts.push($event.detail); setTimeout(() => toasts.shift(), 4000)">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div :class="'toast toast-' + toast.type" x-text="toast.message"></div>
+        </template>
+    </div>
+    
+    <script>
+        // Fonction utilitaire pour les toasts
+        function showToast(message, type = 'success') {
+            window.dispatchEvent(new CustomEvent('add-toast', {
+                detail: { id: Date.now(), message, type }
+            }));
+        }
+        
+        // Confirmation de suppression
+        function confirmDelete(message = 'Êtes-vous sûr ?') {
+            return confirm(message);
+        }
+        
+        // Mise à jour du compteur de messages non lus
+        async function updateUnreadBadge() {
+            try {
+                const res = await fetch('/api/v1/admin/messages?lu=false&limit=1');
+                const data = await res.json();
+                const badge = document.getElementById('unread-badge');
+                if (data.total > 0) {
+                    badge.textContent = data.total;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            } catch(e) {}
+        }
+        updateUnreadBadge();
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

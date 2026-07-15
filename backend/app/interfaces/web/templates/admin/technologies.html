@@ -1,0 +1,152 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = 'technologies' %}
+
+{% block title %}Technologies | Admin{% endblock %}
+{% block page_title %}Technologies{% endblock %}
+{% block page_subtitle %}Gérez votre stack technique{% endblock %}
+
+{% block content %}
+<div x-data="technologiesManager()" x-init="loadTechnologies()">
+    
+    <div class="flex justify-end mb-6">
+        <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <i class="bi bi-plus-lg"></i> Ajouter une technologie
+        </button>
+    </div>
+    
+    <!-- Grille -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <template x-for="tech in technologies" :key="tech.id">
+            <div class="stat-card group">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center text-lg"
+                             x-html="tech.icone_svg || '🔧'"></div>
+                        <div>
+                            <h3 class="font-bold text-sm" x-text="tech.nom"></h3>
+                            <span :class="getNiveauBadge(tech.niveau)" class="badge text-xs" x-text="tech.niveau"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <span class="badge badge-info text-xs mb-3 inline-block" x-text="tech.categorie || 'Non catégorisé'"></span>
+                
+                <div class="flex justify-end gap-2 pt-3 border-t border-gray-800">
+                    <a :href="tech.doc_url" target="_blank" x-show="tech.doc_url" 
+                       class="p-2 hover:bg-gray-700 rounded-lg text-blue-400" title="Documentation">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                    <button @click="openModal(tech)" class="p-2 hover:bg-gray-700 rounded-lg" title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button @click="deleteTechno(tech)" class="p-2 hover:bg-red-900/30 rounded-lg text-red-400" title="Supprimer">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </template>
+        
+        <div x-show="technologies.length === 0" class="col-span-full text-center text-gray-500 py-12">
+            <i class="bi bi-tools text-4xl"></i>
+            <p class="mt-2">Aucune technologie</p>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div x-show="showModal" class="modal-overlay" @click.self="showModal = false">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold mb-4" x-text="editing ? 'Modifier' : 'Nouvelle technologie'"></h3>
+            
+            <form @submit.prevent="saveTechno" class="space-y-4">
+                <div>
+                    <label class="form-label">Nom *</label>
+                    <input x-model="form.nom" required class="form-input" placeholder="Python, FastAPI...">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">Catégorie</label>
+                        <select x-model="form.categorie" class="form-input">
+                            <option value="">Choisir...</option>
+                            <option value="Backend">Backend</option>
+                            <option value="Frontend">Frontend</option>
+                            <option value="Database">Database</option>
+                            <option value="DevOps">DevOps</option>
+                            <option value="Intégration">Intégration</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Niveau</label>
+                        <select x-model="form.niveau" class="form-input">
+                            <option value="Débutant">Débutant</option>
+                            <option value="Intermédiaire">Intermédiaire</option>
+                            <option value="Avancé">Avancé</option>
+                            <option value="Expert">Expert</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Icône (emoji ou SVG)</label>
+                    <input x-model="form.icone_svg" class="form-input" placeholder="🐍 ou <svg>...">
+                </div>
+                <div>
+                    <label class="form-label">URL Documentation</label>
+                    <input x-model="form.doc_url" type="url" class="form-input" placeholder="https://...">
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" @click="showModal = false" class="btn-outline">Annuler</button>
+                    <button type="submit" class="btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function technologiesManager() {
+    return {
+        technologies: [],
+        showModal: false,
+        editing: null,
+        form: { nom: '', categorie: '', niveau: 'Intermédiaire', icone_svg: '', doc_url: '' },
+        
+        async loadTechnologies() {
+            try {
+                var res = await fetch('/api/v1/technologies');
+                this.technologies = await res.json();
+            } catch(e) {}
+        },
+        
+        openModal(tech) {
+            this.editing = tech || null;
+            if (tech) {
+                this.form = { ...tech };
+            } else {
+                this.form = { nom: '', categorie: '', niveau: 'Intermédiaire', icone_svg: '', doc_url: '' };
+            }
+            this.showModal = true;
+        },
+        
+        async saveTechno() {
+            // Pour l'instant, recharge juste (à connecter à l'API admin)
+            showToast(this.editing ? 'Technologie modifiée (simulation)' : 'Technologie ajoutée (simulation)');
+            this.showModal = false;
+            this.loadTechnologies();
+        },
+        
+        async deleteTechno(tech) {
+            if (!confirm('Supprimer ' + tech.nom + ' ?')) return;
+            this.technologies = this.technologies.filter(function(t) { return t.id !== tech.id; });
+            showToast('Technologie supprimée', 'error');
+        },
+        
+        getNiveauBadge(niveau) {
+            var badges = { 'Expert': 'badge-success', 'Avancé': 'badge-info', 'Intermédiaire': 'badge-warning', 'Débutant': 'badge' };
+            return badges[niveau] || '';
+        }
+    }
+}
+</script>
+{% endblock %}

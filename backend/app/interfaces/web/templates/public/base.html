@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="after-midnight">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}Vainqueur Kalema - Développeur Full Stack & Consultant Digital. Solutions SaaS, APIs, et automatisation pour l'Afrique.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}développeur full stack, python, fastapi, saas afrique, consultant digital, automatisation, lubumbashi, RDC{% endblock %}">
+    <meta name="author" content="Vainqueur Kalema">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="theme-color" content="#0A0A0A">
+    <link rel="canonical" href="{{ request.url }}">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="{% block og_title %}Bridge Afrika | Portfolio de Vainqueur Kalema{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Développeur Full Stack & Consultant Digital. Solutions SaaS pour l'Afrique.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}/static/uploads/og-default.jpg{% endblock %}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="fr_FR">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ self.og_title() }}">
+    <meta name="twitter:description" content="{{ self.og_description() }}">
+    <meta name="twitter:image" content="{{ self.og_image() }}">
+    
+    <!-- Schema.org -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Vainqueur Kalema",
+        "jobTitle": "Développeur Full Stack & Consultant Digital",
+        "url": "https://bridgeafrika.com",
+        "sameAs": [
+            "https://github.com/kalema05",
+            "https://linkedin.com/in/kalemavainqueur"
+        ],
+        "knowsAbout": ["Python", "FastAPI", "SaaS", "Automatisation", "API"]
+    }
+    </script>
+    
+    <title>{% block title %}Bridge Afrika | Portfolio{% endblock %}</title>
+    
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="apple-touch-icon" href="/static/favicon.svg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{'body':['Inter','sans-serif'],'display':['Playfair Display','serif']}}}}</script>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    
+    <style>
+        :root {
+    --accent: #E65100;
+    --accent-glow: rgba(230,81,0,0.4);
+    --gold: #D4AF37;
+    --bg: #0A0A0A;
+    --bg-card: #111111;
+    --text: #E0E0E0;
+    --text-muted: #888888;
+    --border: rgba(255,255,255,0.06);
+}
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; line-height: 1.6; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        
+        /* Toast */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 14px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; animation: slideInRight 0.3s ease; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .toast-success { background: #0D2818; color: #4ADE80; border: 1px solid #4ADE80; }
+        .toast-error { background: #281818; color: #F87171; border: 1px solid #F87171; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        /* Nav */
+        .nav-main { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); transition: all 0.3s; }
+        .nav-main.scrolled { box-shadow: 0 4px 30px rgba(0,0,0,0.5); }
+        .nav-link { color: #999; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all 0.3s; padding: 8px 0; position: relative; }
+        .nav-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.3s; }
+        .nav-link:hover { color: #FFF; } .nav-link:hover::after { width: 100%; }
+        .nav-cta { background: var(--accent); color: #FFF !important; padding: 8px 20px !important; border-radius: 50px; font-weight: 600; }
+        .nav-cta:hover { box-shadow: 0 5px 20px var(--accent-glow); transform: translateY(-2px); }
+        .nav-cta::after { display: none; }
+        
+        /* Footer */
+        .footer-main { background: #0D0D0D; border-top: 1px solid var(--border); padding: 4rem 2rem 2rem; }
+        .footer-link { color: #888; text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+        .footer-link:hover { color: var(--accent); }
+        
+        /* Animations globales */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes iconFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes iconPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes borderGlow { 0%,100% { border-color: rgba(230,81,0,0.2); } 50% { border-color: rgba(230,81,0,0.6); } }
+        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .animate-float { animation: iconFloat 3s ease-in-out infinite; }
+        .animate-float-delayed { animation: iconFloat 3s ease-in-out 0.5s infinite; }
+        .animate-pulse-slow { animation: iconPulse 3s ease-in-out infinite; }
+        .animate-border-glow { animation: borderGlow 3s ease-in-out infinite; }
+        
+        .fade-in-section { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1); }
+        .fade-in-section.visible { opacity: 1; transform: translateY(0); }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- NAVIGATION -->
+<!-- ============================================ -->
+<nav class="nav-main" id="mainNav" x-data="{ mobileOpen: false }">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="flex items-center justify-between h-16">
+            <a href="/" class="text-xl font-black text-white tracking-tight">
+                Bridge<span style="color:var(--accent);">Afrika</span>
+            </a>
+            
+            <!-- Desktop -->
+            <div class="hidden lg:flex items-center gap-8">
+                <a href="/#projets" class="nav-link">Projets</a>
+                <a href="/#services" class="nav-link">Services</a>
+                <a href="/#temoignages" class="nav-link">Témoignages</a>
+                <a href="/#technologies" class="nav-link">Stack</a>
+                <a href="/projets" class="nav-link">Portfolio</a>
+                <a href="/blog" class="nav-link">Blog</a>
+                <a href="/contact" class="nav-cta">Me contacter</a>
+            </div>
+            
+            <!-- Mobile toggle -->
+            <button @click="mobileOpen = !mobileOpen" class="lg:hidden text-white text-2xl">
+                <i :class="mobileOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Mobile menu -->
+    <div x-show="mobileOpen" class="lg:hidden bg-[#0D0D0D] border-t border-[#1A1A1A]">
+        <div class="px-6 py-4 space-y-3">
+            <a href="/#projets" class="block text-gray-400 hover:text-white py-2">Projets</a>
+            <a href="/#services" class="block text-gray-400 hover:text-white py-2">Services</a>
+            <a href="/#temoignages" class="block text-gray-400 hover:text-white py-2">Témoignages</a>
+            <a href="/projets" class="block text-gray-400 hover:text-white py-2">Portfolio</a>
+            <a href="/blog" class="block text-gray-400 hover:text-white py-2">Blog</a>
+            <a href="/contact" class="nav-cta inline-block mt-2">Me contacter</a>
+        </div>
+    </div>
+</nav>
+
+<main style="padding-top: 64px; min-height: 60vh;">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ============================================ -->
+<!-- ============================================ -->
+<!-- FOOTER SIGNATURE — BRIDGE AFRIKA -->
+<!-- ============================================ -->
+<footer class="footer-arcane">
+    
+    <!-- Ligne supérieure : glow -->
+    <div class="footer-glow-line"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+        
+        <!-- Mot signature -->
+        <div class="text-center mb-12">
+            <p class="footer-haiku">
+                <span class="haiku-line">Des lignes de code.</span>
+                <span class="haiku-line">Un continent qui s'éveille.</span>
+                <span class="haiku-line">Un pont vers demain.</span>
+            </p>
+        </div>
+
+        <!-- Grille principale -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
+            
+            <!-- Colonne 1 : Identité -->
+            <div class="footer-col">
+                <div class="footer-logo-group">
+                    <i class="bi bi-hexagon footer-logo-icon"></i>
+                    <h3 class="footer-logo-text">
+                        Bridge<span class="footer-logo-accent">Afrika</span>
+                    </h3>
+                </div>
+                <p class="footer-description">
+                    Développeur Full Stack & Architecte SaaS.<br>
+                    Je construis des ponts numériques entre l'Afrique et le monde.
+                </p>
+                <div class="footer-orbit">
+                    <span class="orbit-ring"></span>
+                    <span class="orbit-ring orbit-ring-2"></span>
+                    <span class="orbit-core"></span>
+                </div>
+            </div>
+
+            <!-- Colonne 2 : Navigation -->
+            <div class="footer-col">
+                <h4 class="footer-heading">Navigation</h4>
+                <div class="footer-links">
+                    <a href="/#projets" class="footer-link">
+                        <i class="bi bi-arrow-right-short link-arrow"></i> Projets
+                    </a>
+                    <a href="/#services" class="footer-link">
+                        <i class="bi bi-arrow-right-short link-arrow"></i> Services
+                    </a>
+                    <a href="/projets" class="footer-link">
+                        <i class="bi bi-arrow-right-short link-arrow"></i> Portfolio complet
+                    </a>
+                    <a href="/blog" class="footer-link">
+                        <i class="bi bi-arrow-right-short link-arrow"></i> Blog
+                    </a>
+                    <a href="/contact" class="footer-link">
+                        <i class="bi bi-arrow-right-short link-arrow"></i> Contact
+                    </a>
+                </div>
+            </div>
+
+            <!-- Colonne 3 : Contact vivant -->
+            <div class="footer-col">
+                <h4 class="footer-heading">Contact</h4>
+                <div class="footer-contact-list">
+                    <div class="contact-item">
+                        <i class="bi bi-geo-alt contact-icon"></i>
+                        <span>Lubumbashi, RDC</span>
+                    </div>
+                    <a href="mailto:vainqueurkalema035@gmail.com" class="contact-item contact-link">
+                        <i class="bi bi-envelope contact-icon"></i>
+                        <span>vainqueurkalema035@gmail.com</span>
+                    </a>
+                    <a href="https://wa.me/243895288981" target="_blank" class="contact-item contact-link">
+                        <i class="bi bi-whatsapp contact-icon"></i>
+                        <span>+243 895 288 981</span>
+                    </a>
+                </div>
+                
+                <!-- Réseaux sociaux dans le footer -->
+                <div class="footer-socials" x-data="liensSociaux()" x-init="loadLiens()">
+                    <template x-for="lien in liens" :key="lien.id">
+                        <a :href="lien.url" target="_blank" rel="noopener" :title="lien.plateforme" class="footer-social-link">
+                            <i :class="lien.icone || 'bi bi-link'"></i>
+                        </a>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barre finale -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-left">
+                <span class="copyright">&copy; 2026 Bridge Afrika</span>
+                <span class="separator">·</span>
+                <span class="crafted">
+                    Construit avec passion depuis Lubumbashi
+                </span>
+            </div>
+            <div class="footer-bottom-right">
+                <span class="status-dot"></span>
+                <span class="status-text">En ligne</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Particules flottantes -->
+    <div class="footer-particles">
+        <span class="particle p1"></span>
+        <span class="particle p2"></span>
+        <span class="particle p3"></span>
+        <span class="particle p4"></span>
+        <span class="particle p5"></span>
+        <span class="particle p6"></span>
+    </div>
+</footer>
+
+<style>
+/* ============================================
+   FOOTER ARCANE — ÉLÉGANCE MAXIMALE
+   ============================================ */
+
+.footer-arcane {
+    position: relative;
+    background: linear-gradient(180deg, #080808 0%, #050510 40%, #030310 100%);
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Ligne de glow supérieure */
+.footer-glow-line {
+    height: 1px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(200, 169, 110, 0.15) 20%, 
+        rgba(200, 169, 110, 0.4) 50%, 
+        rgba(200, 169, 110, 0.15) 80%, 
+        transparent 100%
+    );
+    animation: glowShift 8s ease-in-out infinite;
+}
+@keyframes glowShift {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* Haiku */
+.footer-haiku {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: 'Playfair Display', 'Georgia', serif;
+    font-style: italic;
+}
+.haiku-line {
+    font-size: clamp(1rem, 2.5vw, 1.6rem);
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+    transition: all 0.8s ease;
+}
+.haiku-line:nth-child(1) { transition-delay: 0s; }
+.haiku-line:nth-child(2) { transition-delay: 0.1s; color: rgba(255,255,255,0.35); }
+.haiku-line:nth-child(3) { transition-delay: 0.2s; color: rgba(200, 169, 110, 0.5); }
+.haiku-line:hover {
+    color: rgba(200, 169, 110, 0.8);
+    transform: translateX(8px);
+}
+
+/* Colonnes */
+.footer-col {
+    position: relative;
+}
+
+/* Logo */
+.footer-logo-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.footer-logo-icon {
+    font-size: 1.8rem;
+    color: rgba(200, 169, 110, 0.5);
+    animation: iconSpin 12s linear infinite;
+}
+@keyframes iconSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.footer-logo-text {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -1px;
+}
+.footer-logo-accent {
+    color: #C8A96E;
+}
+
+.footer-description {
+    color: rgba(255,255,255,0.25);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+/* Orbite décorative */
+.footer-orbit {
+    position: relative;
+    width: 50px;
+    height: 50px;
+}
+.orbit-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(200, 169, 110, 0.1);
+    animation: orbitPulse 3s ease-in-out infinite;
+}
+.orbit-ring-2 {
+    inset: 8px;
+    animation-delay: 1s;
+    border-color: rgba(200, 169, 110, 0.08);
+}
+.orbit-core {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px; height: 6px;
+    background: rgba(200, 169, 110, 0.3);
+    border-radius: 50%;
+    animation: coreGlow 2s ease-in-out infinite;
+}
+@keyframes orbitPulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.15); opacity: 0.8; }
+}
+@keyframes coreGlow {
+    0%, 100% { box-shadow: 0 0 4px rgba(200, 169, 110, 0.3); }
+    50% { box-shadow: 0 0 12px rgba(200, 169, 110, 0.6); }
+}
+
+/* Headings */
+.footer-heading {
+    color: #fff;
+    font-weight: 700;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Liens */
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.footer-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.3);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    padding: 4px 0;
+}
+.footer-link .link-arrow {
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.3s ease;
+    color: #C8A96E;
+    font-size: 0.7rem;
+}
+.footer-link:hover {
+    color: #C8A96E;
+    padding-left: 4px;
+}
+.footer-link:hover .link-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Contact */
+.footer-contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.85rem;
+    transition: color 0.3s ease;
+}
+.contact-link {
+    text-decoration: none;
+}
+.contact-link:hover {
+    color: #C8A96E;
+}
+.contact-icon {
+    font-size: 1rem;
+    color: rgba(200, 169, 110, 0.5);
+    transition: color 0.3s ease;
+}
+.contact-link:hover .contact-icon {
+    color: #C8A96E;
+}
+
+/* Réseaux sociaux footer */
+.footer-socials {
+    display: flex;
+    gap: 12px;
+    margin-top: 1.2rem;
+}
+.footer-social-link {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.25);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+.footer-social-link:hover {
+    border-color: #C8A96E;
+    color: #C8A96E;
+    background: rgba(200, 169, 110, 0.05);
+    transform: translateY(-3px);
+}
+
+/* Barre du bas */
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.03);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.footer-bottom-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.15);
+}
+.separator {
+    opacity: 0.3;
+}
+.footer-bottom-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.15);
+}
+.status-dot {
+    width: 6px; height: 6px;
+    background: #22C55E;
+    border-radius: 50%;
+    animation: statusPulse 2s ease-in-out infinite;
+}
+@keyframes statusPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+}
+
+/* Particules */
+.footer-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(200, 169, 110, 0.2);
+    border-radius: 50%;
+    animation: particleFloat 10s ease-in-out infinite;
+}
+.p1 { top: 10%; left: 5%; animation-delay: 0s; }
+.p2 { top: 30%; left: 80%; animation-delay: 2s; }
+.p3 { top: 60%; left: 15%; animation-delay: 4s; }
+.p4 { top: 80%; left: 70%; animation-delay: 6s; }
+.p5 { top: 45%; left: 50%; animation-delay: 8s; }
+.p6 { top: 20%; left: 35%; animation-delay: 3s; }
+@keyframes particleFloat {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
+    20% { opacity: 0.6; }
+    50% { transform: translateY(-40px) scale(1.5); opacity: 0.3; }
+    80% { opacity: 0.1; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .footer-haiku { gap: 4px; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+    .footer-orbit { margin: 0 auto; }
+    .footer-socials { justify-content: center; }
+}
+</style>
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<script>
+    window.siteConfig = {
+        identite: { nom: "Vainqueur Kalema", titre: "Développeur Full Stack", photo: "/static/uploads/profile.jpg" },
+        contact: { whatsapp: "+243895288981", email: "contact@bridgeafrika.com" }
+    };
+    fetch('/api/v1/site-config').then(r=>r.json()).then(c=>{window.siteConfig=c;}).catch(()=>{});
+    
+    function showToast(m,t){t=t||'success';var toast=document.createElement('div');toast.className='toast toast-'+t;toast.textContent=m;document.getElementById('toast-container').appendChild(toast);setTimeout(()=>toast.remove(),4000);}
+    
+    // Nav scroll effect
+    window.addEventListener('scroll',function(){document.getElementById('mainNav').classList.toggle('scrolled',window.scrollY>50);});
+</script>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

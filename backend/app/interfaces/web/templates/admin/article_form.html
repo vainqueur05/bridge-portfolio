@@ -1,0 +1,161 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ 'Nouvel article' if is_new else 'Modifier l\'article' }} | Admin{% endblock %}
+{% block page_title %}{{ 'Nouvel article' if is_new else 'Modifier l\'article' }}{% endblock %}
+
+{% block content %}
+<div x-data="articleForm()" x-init="init({{ article_id if article_id else 'null' }})">
+    
+    <form @submit.prevent="saveArticle" class="max-w-4xl">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Titre -->
+                <div class="stat-card">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="form-label">Titre *</label>
+                            <input x-model="form.titre" required class="form-input">
+                        </div>
+                        <div>
+                            <label class="form-label">Slug</label>
+                            <input x-model="form.slug" class="form-input">
+                        </div>
+                        <div>
+                            <label class="form-label">Extrait</label>
+                            <textarea x-model="form.extrait" rows="2" class="form-input"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contenu -->
+                <div class="stat-card">
+                    <h3 class="font-bold mb-4">Contenu (Markdown)</h3>
+                    <textarea x-model="form.contenu" rows="15" class="form-input font-mono text-sm" 
+                              placeholder="## Titre&#10;&#10;Votre contenu en **Markdown**..."></textarea>
+                </div>
+                
+                <!-- Tags -->
+                <div class="stat-card">
+                    <h3 class="font-bold mb-4">Tags</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input x-model="newTag" @keydown.enter.prevent="addTag" class="form-input flex-1" placeholder="Ajouter un tag">
+                        <button type="button" @click="addTag" class="btn-primary">Ajouter</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="(tag, i) in form.tags" :key="i">
+                            <span class="badge badge-info flex items-center gap-1">
+                                <span x-text="tag"></span>
+                                <button @click="form.tags.splice(i, 1)" class="text-xs">&times;</button>
+                            </span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <div class="stat-card">
+                    <h3 class="font-bold mb-4">Publication</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="form-label">Statut</label>
+                            <select x-model="form.statut" class="form-input">
+                                <option value="brouillon">Brouillon</option>
+                                <option value="publié">Publié</option>
+                                <option value="archivé">Archivé</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Catégorie</label>
+                            <input x-model="form.categorie" class="form-input" placeholder="Étude de cas, Tech...">
+                        </div>
+                        <div>
+                            <label class="form-label">Date de publication</label>
+                            <input x-model="form.date_publication" type="date" class="form-input">
+                        </div>
+                        <div>
+                            <label class="form-label">Temps de lecture (min)</label>
+                            <input x-model="form.temps_lecture" type="number" class="form-input" min="1" max="60">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" x-model="form.featured" id="featured" class="w-4 h-4">
+                            <label for="featured">Article mis en avant ⭐</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3 class="font-bold mb-4">Image couverture</h3>
+                    <img :src="form.image_couverture || '/static/placeholder-project.svg'" 
+                         class="w-full h-40 object-cover rounded-lg mb-3">
+                    <input x-model="form.image_couverture" class="form-input" placeholder="URL de l'image">
+                    <input type="file" @change="uploadCover" accept="image/*" class="form-input mt-2">
+                </div>
+                
+                <button type="submit" :disabled="saving" class="btn-primary w-full">
+                    <span x-text="isNew ? 'Publier' : 'Enregistrer'"></span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function articleForm() {
+    return {
+        form: { titre: '', slug: '', extrait: '', contenu: '', categorie: '', tags: [], statut: 'brouillon', featured: false, date_publication: '', temps_lecture: 5, image_couverture: '' },
+        newTag: '', isNew: true, saving: false, articleId: null,
+        
+        async init(id) {
+            if (id) {
+                this.isNew = false;
+                this.articleId = id;
+                const res = await fetch(`/api/v1/articles/${id}`);
+                const article = await res.json();
+                this.form = { ...this.form, ...article, tags: article.tags || [] };
+            }
+        },
+        
+        addTag() {
+            if (this.newTag.trim()) {
+                if (!this.form.tags) this.form.tags = [];
+                this.form.tags.push(this.newTag.trim());
+                this.newTag = '';
+            }
+        },
+        
+        async uploadCover(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('dossier', 'blog');
+            const res = await fetch('/api/v1/admin/upload', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) this.form.image_couverture = data.url;
+        },
+        
+        async saveArticle() {
+            this.saving = true;
+            const url = this.isNew ? '/api/v1/admin/articles' : `/api/v1/admin/articles/${this.articleId}`;
+            const method = this.isNew ? 'POST' : 'PUT';
+            
+            const res = await fetch(url, {
+                method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(this.form)
+            });
+            
+            if (res.ok) {
+                showToast(this.isNew ? 'Article créé !' : 'Article mis à jour !');
+                setTimeout(() => window.location.href = '/admin/articles', 800);
+            }
+            this.saving = false;
+        }
+    }
+}
+</script>
+{% endblock %}
