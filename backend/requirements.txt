@@ -13,3 +13,4 @@ qrcode
 pillow
 jinja2
 httpx
+aiosqlite
