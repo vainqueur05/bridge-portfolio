@@ -34,6 +34,7 @@ from app.interfaces.web.routes import web_router
 from app.infrastructure.database.session import engine, Base
 from app.infrastructure.database.models import Projet  # pour le test "table vide"
 from app.interfaces.api.v1.routes import seo
+from app.interfaces.api.v1.routes import seed_trigger
 # -------- logging ----------
 logging.basicConfig(
     level=logging.INFO if not os.getenv("RENDER") else logging.WARNING,
@@ -185,6 +186,7 @@ app.include_router(config_admin.router, prefix="/api/v1", tags=["Config Admin"])
 app.include_router(upload.router, prefix="/api/v1", tags=["Upload"])
 app.include_router(web_router, tags=["Web"])
 app.include_router(seo.router, tags=["SEO"])
+app.include_router(seed_trigger.router, prefix="/api/v1", tags=["Seed"])
 
 # ===================== ERROR HANDLERS =====================
 @app.exception_handler(404)
