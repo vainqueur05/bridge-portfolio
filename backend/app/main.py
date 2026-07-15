@@ -33,7 +33,7 @@ from app.interfaces.api.v1.routes import (
 from app.interfaces.web.routes import web_router
 from app.infrastructure.database.session import engine, Base
 from app.infrastructure.database.models import Projet  # pour le test "table vide"
-
+from app.interfaces.api.v1.routes import seo
 # -------- logging ----------
 logging.basicConfig(
     level=logging.INFO if not os.getenv("RENDER") else logging.WARNING,
@@ -184,7 +184,7 @@ app.include_router(auth.router, prefix="/api/v1", tags=["Auth"])
 app.include_router(config_admin.router, prefix="/api/v1", tags=["Config Admin"])
 app.include_router(upload.router, prefix="/api/v1", tags=["Upload"])
 app.include_router(web_router, tags=["Web"])
-
+app.include_router(seo.router, tags=["SEO"])
 
 # ===================== ERROR HANDLERS =====================
 @app.exception_handler(404)
