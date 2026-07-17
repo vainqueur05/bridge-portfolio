@@ -20,22 +20,18 @@ class BridgeScanRequest(BaseModel):
     )
     budget: str = Field(
         ...,
-        pattern="^(moins de 500\$|500\$ - 1500\$|1500\$ - 5000\$|5000\$ - 15000\$|15000\$ \+|sur devis)$",
         description="Fourchette budgétaire en dollars."
     )
     urgence: str = Field(
         ...,
-        pattern="^(exploratoire|standard|prioritaire|critique)$",
         description="Niveau d'urgence du projet."
     )
     secteur: str = Field(
         default="non spécifié",
-        pattern="^(transport|santé|éducation|finance|commerce|agriculture|logistique|non spécifié)$",
         description="Secteur d'activité principal."
     )
     localisation: str = Field(
         default="non spécifié",
-        pattern="^(locale|nationale|régionale|continentale|mondiale)$",
         description="Portée géographique du projet."
     )
 
@@ -61,7 +57,7 @@ async def analyze_project(data: BridgeScanRequest):
     
     # Analyse de la clarté du projet (nombre de mots significatifs)
     mots_cles = [m for m in data.projet.lower().split() if len(m) > 3]
-    clarte = int(min(len(mots_cles) * 1.8, 30))  # ← int ici
+    clarte = int(min(len(mots_cles) * 1.8, 30))
     
     # Bonus selon le budget (en dollars)
     bonus_budget = {
@@ -90,7 +86,6 @@ async def analyze_project(data: BridgeScanRequest):
         "commerce": 12,
         "agriculture": 10,
         "logistique": 12,
-        "non spécifié": 0,
     }
     
     # Bonus selon la portée
@@ -100,7 +95,6 @@ async def analyze_project(data: BridgeScanRequest):
         "régionale": 18,
         "continentale": 22,
         "mondiale": 25,
-        "non spécifié": 0,
     }
     
     score = (
