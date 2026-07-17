@@ -16,6 +16,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -32,9 +33,10 @@ from app.interfaces.api.v1.routes import (
 )
 from app.interfaces.web.routes import web_router
 from app.infrastructure.database.session import engine, Base
-from app.infrastructure.database.models import Projet  # pour le test "table vide"
+from app.infrastructure.database.models import Projet
 from app.interfaces.api.v1.routes import seo
 from app.interfaces.api.v1.routes import seed_trigger
+
 # -------- logging ----------
 logging.basicConfig(
     level=logging.INFO if not os.getenv("RENDER") else logging.WARNING,
@@ -51,7 +53,7 @@ async def lifespan(app: FastAPI):
         f"Environnement : {'RENDER (Production)' if os.getenv('RENDER') else 'Local (Développement)'}"
     )
 
-    # ---------- Création des tables (dev uniquement) ----------
+    # ---------- Création des tables (dev) ----------
     if not os.getenv("RENDER"):
         try:
             async with engine.begin() as conn:
@@ -72,7 +74,7 @@ async def lifespan(app: FastAPI):
         if os.getenv("RENDER"):
             raise
 
-    # ---------- Seed automatique si la table "projets" est vide ----------
+    # ---------- Seed automatique ----------
     try:
         from sqlalchemy import select, func
         async with engine.begin() as conn:
@@ -106,6 +108,11 @@ app = FastAPI(
 )
 
 # ===================== MIDDLEWARES =====================
+
+# 1. GZip Compression - rend le site plus rapide
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
+# 2. CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -121,7 +128,7 @@ app.add_middleware(
     max_age=3600,
 )
 
-
+# 3. Session Middleware
 @app.middleware("http")
 async def session_middleware(request: Request, call_next):
     start_time = datetime.utcnow()
@@ -153,6 +160,7 @@ async def session_middleware(request: Request, call_next):
     return response
 
 
+# 4. Security Headers Middleware
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
     response = await call_next(request)
@@ -161,6 +169,9 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    # Cache navigateur pour les fichiers statiques
+    if request.url.path.startswith("/static"):
+        response.headers["Cache-Control"] = "public, max-age=86400"
     return response
 
 
